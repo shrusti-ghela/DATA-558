@@ -1,0 +1,628 @@
+---
+title: "Data 558 - Homework 1"
+author: "Shrusti Ghela"
+date: "4/9/2022"
+output:
+  pdf_document:
+    latex_engine: xelatex
+  word_document: default
+---
+
+### 1.  Suppose that you are interested in performing regression on a particular dataset, in order to answer a particular scientific question. You need to decide whether to take a parametric or a non-parametric approach. 
+
+Here, we are interested in solving $Y = f(X) + \epsilon$, where
+
+- $X$ represents the input variables (a.k.a predictors/independent variables/features/variables) 
+- ( For a regression problem) $Y$ (output/dependent/response variable) is quantitative
+- $f$ is some unknown function ($f$ represents the systematic information that $X$ provides about $Y$)
+- $\epsilon$ is a noise (random error) term $E(\epsilon) = 0$ and $\epsilon \perp\!\!\!\perp X$
+
+### a.  In general, what are the pros and cons of taking a parametric versus a non-parametric approach?       
+
+**Parametric approach**
+
+In Parametric approach, we first make an assumption about the functional form of $f(X)$ 
+And then instead of solving for the entire $f(X)$, we just solve for the parameters (or coefficients) for our assumed $f(X)$ in a way that best fits the data at hand. (That is, $Y \approx \hat f(X)$.) Hence the name Parametric. 
+
+
+The problem is thus reduced to finding the coefficients of the pre-fixed functional form. Thus, instead of finding say some $p$-dimensional $f$, we find $p+1$ coefficients for $f$. This reduces the complexity of the problem, much significantly when $p$ is large. 
+
+
+This approach has a major disadvantage when the real $f(X)$ is not close to our assumption of the functional form, we end up with a model that does not represent our data effectively. 
+
+
+Parametric approaches are not flexible enough but more interpretable. 
+
+**Non-parametric approach**
+
+In non-parametric approach, we do not make any assumptions about the functional form of $f$. (Here, we try to fit a model in a way that it is "not too wiggly"). Since we are solving for $f(X)$ and not just the parameters and hence the problem is comparatively more complex. And because we don't make an assumption, we need a lot more observation to find a $f(X)$ that fits our data. 
+
+On the other side, we are not restricted by the assumption and we don't have to worry too much about whether or not our assumption of the functional form holds for the data at hand. 
+
+Non-parametric approaches are comparatively much more flexible and less interpretable. Because it is more flexible, this kind of approach tends to find patterns in data that doesn't exist (That is, it overfits the data) 
+
+
+### b. What properties of the data or scientific question would lead you to take a parametric approach?
+
+There are multiple scenarios when we prefer parametric approach:
+
+- When we are trying to understand the association between the different variables, we are trying to estimate $f(X)$ for inference purposes. In such a situation, we would prefer a more interpretable approach rather than a more flexible but less interpretable approach. Parametric approach are generally more interpretable and much less flexible. 
+- In a situation, when our goal is both prediction and inference, we still generally prefer a more interpretable approach over more flexible ones. Because, Non-parametric approaches are still not very interpretable, but we can work with somewhat flexible parametric approaches.
+- When we do not have a lot of observations, we would prefer Parametric approaches because it works well with a small number of observations. 
+
+
+### c. What properties of the data or scientific question would lead you to take a non-parametric approach?
+
+- When we are only interested in accurate prediction and not interested in the association between the variables, we would use a non-parametric approach. 
+- When the problem on hand is much more complex than that could be solved using simple parametric approaches and we have enough observations, we tend to prefer Non-parametric approaches.
+
+### 2. In each setting, would you generally expect a flexible or an inflexible statistical machine learning method to perform better? Justify your answer.
+
+### a. Sample size n is very small, and number of predictors p is very large.
+
+For flexible approaches to work accurately, they tend to require more observations than restrictive or inflexible approaches. Considering $p$ to be very large, for flexible approach to work, we need $n$ to be large enough, which is not the case. Hence, our best bet would be a restrictive or an inflexible approach.
+
+### b. Sample size n is very large, and number of predictors p is very small.
+
+For a small number of predictors, we have a large sample size. This is a situation where we have enough amount of data for a flexible approach. So, deciding whether to pick a flexible approach or an inflexible approach then depends on what problem are we trying to solve. If our only goal is accurate prediction and we don't care about the association between the varaibles, we can use a flexible approach with a risk of overfitting. However, if we want to understand the association between the variables irrespective of the fact that we are interested in prediction or not, we use an inflexible approach because they are more interpretable.
+
+### c. Relationship between predictors and response is highly non-linear.
+
+Flexible approaches are not restrictive in a sense that they can generate a more wider range of possible shapes to estimate $f$. However, this is not the case with inflexible approaches. Since our data has non-linear relationship between the predictors, flexible approaches might be able to solve this problem better than a restrictive approach. Using a flexible approach always comes with the risk of overfitting. 
+
+
+### d. The variance of the error terms, i.e. $\sigma  ^2 = var(\epsilon)$, is extremely high.
+
+The choice of a flexible or inflexible approach does not depend on the irreducible error and if irreducible error is high or low, because as the name suggests that whether we choose flexible or inflexible error, we could not get rid of extremely high variance of error terms i.e irreducible error.
+
+### 3. For each scenario, determine whether it is a regression or a classification problem, determine whether the goal is inference or prediction, and state the values of $n$ (sample size) and $p$ (number of predictors).
+
+### a. I want to predict each student’s final exam score based on his or her homework scores. There are 50 students enrolled in the course, and each student has completed 8 homeworks.
+
+- Problem: Regression (output final exam score is quantitative)
+- Goal: Prediction
+- $n$: 50 (students)
+- $p$: 8 (homeworks)
+
+### b. I want to understand the factors that contribute to whether or not a student passes this course. The factors that I consider are (i) whether or not the student has previous programming experience; (ii) whether or not the student has previously studied linear algebra; (iii) whether or not the student has taken a previous stats/probability course; (iv) whether or not the student attends office hours; (v) the student’s overall GPA; (vi) the student’s year (e.g. freshman, sophomore, junior, senior, or grad student). I have data for all 50 students enrolled in the course.
+
+- Problem: Classification (pass/fail)
+- Goal: Inference (Understand the factors that contribute towards pass/fail)
+- $n$: 50 (students)
+- $p$: 6 (previous programming experience, Linear Algebra, Statistics/Probability, Office hours, GPA, student's year)
+
+### 4. This problem has to do with the bias-variance trade-off and related ideas, in the context of regression. For (a) and (b), it’s okay to submit hand-sketched plots: you are not supposed to actually compute the quantities referred to below on data; instead, this is a thought exercise.
+
+### a. Make a plot, like the one we saw in class, with “flexibility” on the x- axis. Sketch the following curves: squared bias, variance, irreducible error, reducible error, expected prediction error. Be sure to label each curve. Indicate which level of flexibility is “best”
+
+![](~/Downloads/4a.jpeg)
+
+### b. Make a plot with “flexibility” on the x-axis. Sketch curves corresponding to the training error and the test error. Be sure to label each curve. Indicate which level of flexibility is “best”.
+
+![](~/Downloads/4b.jpeg)
+
+### c. Describe an $\hat f$ that has extremely low bias, and extremely high variance. Explain your answer.
+
+Let's define a model that tries to fit the data in such a way that a curve passes through every data point. It is the "connecting the dots" model. It tries to fit a function $\hat f(X)$ in such a way that the function passes through all the points in the training data. 
+
+![](~/Downloads/4c.jpeg)
+In this case, the bias is extremely low, in fact zero. But the variance is extremely high. 
+Why is this the case?
+Let us consider a situation wherein someone else is doing the same experiment, that is trying to answer the same question. And that person gets a slightly different dataset just due to random noise, then this model that tries to fit a curve that passes through every point in the training dataset results in a totally different curve. So, we say that this algorithm has a very high variance. There is a lot of variability in the predictions that this algorithm will make. 
+However, this algorithm doesn't have any strong preconceptions that the data could be fit by any particular type of $f$. Hence, extremely low bias. Or for this case zero bias. 
+
+### d. Describe an $\hat f$ that has extremely high bias, and zero variance. Explain your answer.
+
+Let us define a model that gives out constant prediction, irrespective of the dataset. That is it tries to fit a constant line $Y = c$ to our dataset. 
+
+![](~/Downloads/4d.jpeg)
+
+In this case, the bias is extremely high. But the variance is zero. 
+Why? 
+This is because irrespective of the fact that someone else doing this experiment might have a slightly different dataset, there would be no variance in the predictions because your model is giving out constant value. And doesn't really depend on the dataset. However, this learning algorithm has very strong preconceptions that the dataset could be fit using this constant line. This means it has extremely high bias. In cases like these, data is underfitted because such preconceptions are hardly ever true. 
+
+### 5. We now consider a classification problem. Suppose we have 2 classes (labels), 25 observations per class, and $p = 2$ features. We will call one class the “red” class and the other class the “blue” class. The observations in the red class are drawn i.i.d. from a $\mathcal{N}(\mu _r, I)$ distribution, and the observations in the blue class are drawn i.i.d. from a $\mathcal{N}(\mu _b, I)$ distribution, where $\mu _r = \begin{pmatrix}0\\0\end{pmatrix}$is the mean in the red class, and where $\mu _b = \begin{pmatrix}1.5\\1.5\end{pmatrix}$ is the mean in the blue class.
+
+
+### a. Generate a training set, consisting of 25 observations from the red class and 25 observations from the blue class. (You will want to use the R function rnorm.) Plot the training set. Make sure that the axes are properly labeled, and that the observations are colored according to their class label.
+
+```{r}
+# loading the MASS library to use the mvrnorm function for generating the 
+# bivariate normal distribution
+
+library(MASS)
+
+#loading the ggplot2 library for plots
+
+library(ggplot2)
+
+set.seed(209)
+
+mu_1 <- c(0,0)
+mu_2 <- c(1.5, 1.5)
+sigma <- matrix(c(1,0,0,1), 2,2)
+
+trainRed5 <- data.frame(mvrnorm(25, mu_1, sigma), Group ="red")
+trainBlue5 <- data.frame(mvrnorm(25, mu_2, sigma), Group = "blue")
+
+trainData5 <- rbind.data.frame(trainBlue5, trainRed5)
+
+colors <- c("red" = "red", "blue"="blue")
+
+ggplot(trainData5, aes(x=X1, y=X2))+
+  geom_point(size=2, pch=16, aes(color=Group))+
+  labs(x = "X1",
+       y="X2",
+       title = "Generated Training Data",
+       color="Class")+
+  scale_color_manual(values=colors)
+
+```
+
+### b. Now generate a test set consisting of 25 observations from the red class and 25 observations from the blue class. On a single plot, display both the training and test set, using one symbol to indicate training observations(e.g. circles) and another symbol to indicate the test observations (e.g. squares). Make sure that the axes are properly labeled, that the symbols for training and test observations are explained in a legend, and that the observations are colored according to their class labels.
+
+```{r}
+set.seed(200)
+
+testRed5 <- data.frame(mvrnorm(25, mu_1, sigma), Group ="red")
+testBlue5 <- data.frame(mvrnorm(25, mu_2, sigma), Group= "blue")
+
+testData5 <- rbind.data.frame(testRed5, testBlue5)
+
+colors <- c("red" = "red", "blue"="blue")
+
+ggplot(testData5, aes(x=X1, y=X2))+
+  geom_point(size=2, pch=16, aes(color=Group))+
+  labs(x = "X1",
+       y="X2",
+       title = "Generated Test Data",
+       color="Class")+
+  scale_color_manual(values=colors)
+
+```
+```{r}
+
+shapes <- c("train" = 16, "test" = 17)
+ggplot() +               
+  geom_point(data = trainData5, aes(X1,X2, color=Group, shape="train"))+
+  geom_point(data = testData5, aes(X1,X2, color=Group, shape="test"))+
+  ggtitle("Combined Plot of Training and Test Data")+
+  scale_color_manual(values=colors, name="Class")+
+  scale_shape_manual(values=shapes, name="Data")
+
+```
+
+### c. Using the knn function in the library class, fit a k-nearest neighbors model on the training set, for a range of values of k from 1 to 20. Make a plot that displays the value of 1/k on the x-axis, and classification error (both training error and test error) on the y-axis. Make sure all axes and curves are properly labeled. Explain your results.
+
+```{r}
+set.seed(150)
+
+library(class)
+
+trainScale5 <- scale(trainData5[, 1:2])
+testScale5 <- scale(testData5[, 1:2])
+testError5<-c()
+trainError5<-c()
+for (i in 1:20){
+  knnTrain5<-knn(trainScale5, trainScale5, cl=trainData5$Group, i)
+  knnTest5<-knn(trainScale5, testScale5, cl=trainData5$Group, i)
+  misClassErrortrain5 <- mean(knnTrain5 != trainData5$Group)
+  trainError5[i] <- misClassErrortrain5
+  misClassError5 <- mean(knnTest5 != testData5$Group)
+  testError5[i] <- misClassError5
+}
+
+error5 = data.frame(trainError5, testError5, k=1:20)
+
+cols <- c("Train error" = "red", "Test error" = "blue")
+
+ggplot() +        
+  geom_line(data = error5, aes(1/k, trainError5, color="Train error"))+
+  geom_line(data = error5, aes(1/k, testError5, color="Test error"))+
+  geom_point(data = error5, aes(1/k, trainError5, color="Train error"))+
+  geom_point(data = error5, aes(1/k, testError5, color="Test error"))+
+  labs(x = "1/k", y = "Classification Error Rate")+
+  scale_color_manual(values=cols, name="Error")+
+  ggtitle("Classification Error using kNN for k = 1 to 20 ")
+
+```
+
+How do we interpret this graph?
+Let us understand it in the terminologies that we have defined earlier. k is the number of nearest neighbors used for the kNN. We know that as the k increases, the flexibility decreases, as the degree of freedom decreases. For our question, we can safely say that the kNN for $k=20$ will be the least flexible while the kNN for $k=1$ will be the most flexible. So if we go from $k=20$ to $k=1$, or say if $1/k$ goes from $1/20$ to $1$ to flexibility increases. Now as we saw in Question 4b, as flexibility increases, training error decreases, and test error first decreases and then increases.This is what we observe theoretically. This is because of the fact that after a certain level of flexibility, the model starts overfitting the data. This is what we see in the graph above. 
+
+### d. For the value of k that resulted in the smallest test error in part (c) above, make a plot displaying the test observations as well as their true
+3 and predicted class labels. Make sure that all axes and points are clearly labeled.
+
+```{r}
+which.min(error5$testError5)
+min(error5$testError5)
+```
+```{r}
+set.seed(150)
+knnTest_4<-knn(trainScale5, testScale5, cl=trainData5$Group, 4)
+knnPred_4<-data.frame(knnTest_4, testData5$X1, testData5$X2, testData5$Group)
+confusionMatrix_4 <- table(testData5$Group, knnTest_4)
+confusionMatrix_4
+```
+```{r}
+col <- c("red" = "red", "blue" = "blue")
+sha <- c("Predicted" = 1, "Observed" = 3)
+ggplot() +               
+  geom_point(data = knnPred_4, aes(testData5.X1,testData5.X2,color=knnTest_4, shape="Predicted"))+
+  geom_point(data = knnPred_4, aes(testData5.X1,testData5.X2, color=testData5.Group, shape="Observed"))+
+  labs(x = "X1", y = "X2")+
+  ggtitle("Actual and Predicted Test Data")+
+  scale_color_manual(values=col, name="Class")+
+  scale_shape_manual(values=sha, name="Data")
+  
+```
+
+### e. In this example, what is the Bayes error rate? Justify your answer, and explain how it relates to your findings in (c) and (d).
+
+![](~/Downloads/5e1.jpeg)
+![](~/Downloads/5e2.jpeg)
+```{r}
+set.seed(4203)
+
+testRedBC <- data.frame(mvrnorm(5000, mu_1, sigma), y ="red")
+testBlueBC <- data.frame(mvrnorm(5000, mu_2, sigma), y= "blue")
+
+testDataBC<- rbind.data.frame(testRedBC, testBlueBC)
+
+plot(testDataBC$X1, testDataBC$X2, col=testDataBC$y, xlab="X1", ylab="X2", main="Simulated Test Data for n=10000")
+
+library(MASS)
+X1 <- as.numeric(testDataBC$X1)
+X2 <- as.numeric(testDataBC$X2)
+
+predColor <- c()
+
+for (i in 1:10000)
+{
+
+    if ( ( (X1[i])^2 + (X2[i])^2 ) < (X1[i] - 1.5)^2 + (X2[i]-1.5)^2)
+    {
+        predColor[i] <- "red"
+    }
+  
+    else
+    {
+        predColor[i] <- "blue"
+    }
+  
+}
+
+testDataBC <- cbind.data.frame(testDataBC, predColor)
+
+misClassErrorBC<- mean(testDataBC$y != testDataBC$predColor)
+misClassErrorBC
+
+```
+This simulated plot looks similar to what we theoretically explored. And the Bayes error comes to be 0.1387. Bayes error is the best we can do for Classification problems. What it means is that Bayes Classifier is the optimal solution. There is no better case than this. The error of this optimal Bayes classifier is the unavoidable error for this learning task.
+
+### 6. We will once again perform k-nearest-neighbors in a setting with p = 2 features. But this time, we’ll generate the data differently: let $X1 ∼ Unif[0,1]$ and $X2 ∼ Unif[0,1]$, i.e. the observations for each feature are i.i.d. from a uniform distribution. An observation belongs to class “red” if $(X1−0.5)^2+(X2−0.5)^2 > 0.15$ and $X1 > 0.5$; to class “green” if $(X1−0.5)^2 + (X2 −0.5)^2 > 0.15$ and $X1 ≤0.5$; and to class “blue” otherwise.
+
+### a. Generate a training set of $n = 200$ observations. (You will want to use the R function runif.) Plot the training set. Make sure that the axes are
+properly labeled, and that the observations are colored according to their
+class label.
+
+```{r}
+
+set.seed(43)
+
+library(dplyr)
+
+X1<- runif(200,0,1)
+X2<- runif(200,0,1)
+
+trainData6 <- data.frame(X1, X2)
+trainData6 <-trainData6 %>% mutate(Group =
+                     case_when((X1-0.5)^2 +(X2-0.5)^2 >0.15 & X1>0.5 ~ "red", 
+                               (X1-0.5)^2 +(X2-0.5)^2 >0.15 & X1<0.5 ~ "green",
+                               (X1-0.5)^2 +(X2-0.5)^2 <=0.15 ~ "blue"))
+
+colors_6 <- c("red" = "red", "blue"="blue", "green" = "green")
+
+ggplot(trainData6, aes(x=X1, y=X2))+
+  geom_point(size=2, pch=16, aes(color=Group))+
+  labs(x = "X1",
+       y="X2",
+       title = "Generated Training Data",
+       color="Class")+
+  scale_color_manual(values=colors_6)
+
+```
+
+### b. Now generate a test set consisting of another 200 observations. On a single plot, display both the training and test set, using one symbol to indicate training observations (e.g. circles) and another symbol to indicate the test observations (e.g. squares). Make sure that the axes are properly labeled, that the symbols for training and test observations are explained in a legend, and that the observations are colored according to their class label.
+
+```{r}
+set.seed(2)
+X1_t <- runif(200,0,1)
+X2_t <- runif(200,0,1)
+testData6 <- data.frame(X1_t, X2_t)
+library(dplyr)
+testData6<-testData6 %>% mutate(Group =
+                     case_when((X1_t-0.5)^2 +(X2_t-0.5)^2 >0.15 & X1_t>0.5 ~ "red", 
+                               (X1_t-0.5)^2 +(X2_t-0.5)^2 >0.15 & X1_t<0.5 ~ "green",
+                               (X1_t-0.5)^2 +(X2_t-0.5)^2 <=0.15 ~ "blue"))
+
+shapes <- c("train" = 16, "test" = 17)
+ggplot() +               
+  geom_point(data = trainData6, aes(X1,X2, color=Group, shape="train"))+
+  geom_point(data = testData6, aes(X1_t,X2_t, color=Group, shape="test"))+
+  ggtitle("Combined Plot of Training and Test Data")+
+  scale_color_manual(values=colors_6, name="Class")+
+  scale_shape_manual(values=shapes, name="Data")+
+  labs(x="X1",y="X2")
+
+
+
+```
+### c. Using the knn function in the library class, fit a k-nearest neighbors model on the training set, for a range of values of k from 1 to 50. Make a plot that displays the value of $1/k$ on the x-axis, and classification error (both training error and test error) on the y-axis. Make sure all axes and curves are properly labeled. Explain your results.
+```{r}
+set.seed(1)
+trainScale6<- scale(trainData6[, 1:2])
+testScale6 <- scale(testData6[, 1:2])
+testError6<-c()
+trainError6<-c()
+for (i in 1:50){
+  knnTrain6<-knn(trainScale6, trainScale6, cl=trainData6$Group, i)
+  knnTest6<-knn(trainScale6, testScale6, cl=trainData6$Group, i)
+  misClassErrorTrain6 <- mean(knnTrain6 != trainData6$Group)
+  trainError6[i] <- misClassErrorTrain6
+  misClassError6 <- mean(knnTest6 != testData6$Group)
+  testError6[i] <- misClassError6
+}
+
+error6 = data.frame(trainError6, testError6, k=1:50)
+
+cols <- c("Train error" = "red", "Test error" = "blue")
+
+ggplot() +        
+  geom_line(data = error6, aes(1/k, trainError6, color="Train error"))+
+  geom_line(data = error6, aes(1/k, testError6, color="Test error"))+
+  geom_point(data = error6, aes(1/k, trainError6, color="Train error"))+
+  geom_point(data = error6, aes(1/k, testError6, color="Test error"))+
+  labs(x = "1/k", y = "Classification Error Rate")+
+  scale_color_manual(values=cols, name="Error")+
+  ggtitle("Classification Error using kNN for k = 1 to 50 ")
+```
+How do we interpret this graph?
+Let us understand it in the terminologies that we have defined earlier. k is the number of nearest neighbors used for the kNN. We know that as the k increases, the flexibility decreases, as the degree of freedom decreases. For our question, we can safely say that the kNN for $k=50$ will be the least flexible while the kNN for $k=1$ will be the most flexible. So if we go from $k=50$ to $k=1$, or say if $1/k$ goes from $1/50$ to $1$ to flexibility increases. Now as we saw in Question 4b, as flexibility increases, training error decreases, and test error first decreases and then increases.This is what we observe theoretically. This is because of the fact that after a certain level of flexibility, the model starts overfitting the data. This is what we see in the graph above.
+
+### d. For the value of k that resulted in the smallest test error in part (c) above, make a plot displaying the test observations as well as their true and predicted class labels. Make sure that all axes and points are clearly labeled.
+
+```{r}
+which.min(error6$testError6)
+min(error6$testError6)
+```
+
+```{r}
+set.seed(150)
+knnTest8<-knn(trainScale6, testScale6, cl=trainData6$Group, 8)
+knnPred8<-data.frame(knnTest8, testData6$X1_t, testData6$X2_t, testData6$Group)
+confusionMatrix8 <- table(testData6$Group, knnTest8)
+confusionMatrix8
+```
+
+```{r}
+
+ggplot() +               
+  geom_point(data = knnPred8, aes(testData6.X1_t,testData6.X2_t,color=knnTest8, shape="Predicted"))+
+  geom_point(data = knnPred8, aes(testData6.X1_t,testData6.X2_t, color=testData6.Group, shape="Observed"))+
+  labs(x = "X1", y = "X2")+
+  ggtitle("Actual and Predicted Test Data")+
+  scale_color_manual(values=colors_6, name="Class")+
+  scale_shape_manual(values=sha, name="Data")
+  
+```
+
+### e. In this example, what is the Bayes error rate? Justify your answer, and explain how it relates to your findings in (c) and (d).
+
+```{r}
+set.seed(5040)
+X1s <- runif(10000,0,1)
+X2s <- runif(10000,0,1)
+testData6BC <- data.frame(X1s, X2s)
+library(dplyr)
+testData6BC<-testData6BC %>% mutate(Group =
+                     case_when((X1s-0.5)^2 +(X2s-0.5)^2 >0.15 & X1s>0.5 ~ "red", 
+                               (X1s-0.5)^2 +(X2s-0.5)^2 >0.15 & X1s<0.5 ~ "green",
+                               (X1s-0.5)^2 +(X2s-0.5)^2 <=0.15 ~ "blue"))
+
+ggplot() +               
+  geom_point(data = testData6BC, aes(X1s,X2s, color=Group))+
+  ggtitle("Simulated Test Data")+
+  scale_color_manual(values=colors_6, name="Class")+
+  labs(x="X1",y="X2")
+
+
+
+```
+Here, I simulated the data using the distribution given in the question for 20000 data points. We can clearly see that there is no overlapping between any class because our data is created in such a way. There is a specific boundary that separates each class. Since there is a uniform distribution and such rigidly defined boundaries, this is the optimal case. The boundaries as we defined while generating the data is the optimal case. That is the Bayes Classifier. In such a case, the best possible case could be achieved and hence, the Bayes error rate would essentially be 0. 
+
+In (c) and (d) of this we see this that the kNN does a pretty decent job of minimizing the test error to 0.08 which is much closer to 0. So, we try to achieve this best possible case, but can never get a value exactly as the Bayes error rate. Bayes error rate is a theoretical concept and we can't actually calculate it. We can just estimate it. 
+
+### 7. This exercise involves the Boston housing data set, which is part of the ISLR2
+library.
+
+```{r}
+library(ISLR2)
+```
+
+### a. How many rows are in this data set? How many columns? What do the rows and columns represent?
+
+```{r}
+dim(Boston)
+```
+
+The Boston housing dataset consists of hosing values of suburbs in Boston. Boston is dataframe with 506 rows and 13 columns. These 506 rows are observations that represent 506 suburbs for Boston and 13 columns are different variables that represent 13 different categories of information for these 506 suburbs. 
+
+### b. Make some pairwise scatterplots of the predictors (columns) in this dataset. Describe your findings.
+
+```{r, fig.show='hide'}
+panel.cor<- function(x,y){
+  usr<-par("usr"); on.exit(par(usr))
+  par(usr = c(0,1,0,1))
+  r<- round(cor(x,y), digits=2)
+  txt<- paste0("R=", r)
+  text(0.5, 0.5, txt)
+}
+
+upper.panel<- function(x,y){
+  points(x,y, pch=19, col="blue")
+}
+
+pairs(crim~.,data=Boston, lower.panel=panel.cor, upper.panel=upper.panel)
+```
+![](~/Downloads/7b)
+
+I initially plotted just the pairwise scatter plot of all the variables. But it was pretty hard to read and understand what these scatter plots meant and so I removed the redundant lower panel and added correlations of two variables taken at a time. This made some of the relations pretty clear. 
+
+Some of the observations from this pairwise scatter plot:
+
+- We can see that chas is a dummy variable. That is it has only two possible values: either 0 or 1. From the dataset, we know that chas=1 if tract bounds river and 0 otherwise. 
+- There is extremely strong correlation between tax and rad. 
+- There is strong negative correlation between lstat and medv. 
+- There is a strong correlation between age, dis, indus and nox. 
+- There is a positive correlation between rm and medv. 
+- We can also see that there are a large number of suburbs with crim value close to zero.
+- There is a clear non-linear relationship between lstat and medv which is not accurately described by the correlation value. 
+- We observe that there are some suburbs take the same tax, rad, zn, radius and ptratio values. 
+
+### c. re any of the predictors associated with per capita crime rate? If so, explain the relationship.
+
+Using the lower panel of the scatter plot above, we see that there is some sort of linear association between crim and rad, tax, lstat. 
+
+```{r}
+pairs(crim ~ rad + tax+ lstat, data=Boston, col="blue", lower.panel=NULL)
+plot(Boston$crim, col="blue", xlab="Suburbs", ylab="Per Capita Crime rate")
+```
+
+Here, we also observe that for some specific value of tax and rad, the crime rate is highly varying. 
+
+We can also see that there are a large number of suburbs with crim value close to zero.
+
+### d. Do any of the suburbs of Boston appear to have particularly high crime rates? Tax rates? Pupil-teacher ratios? Comment on the range of each predictor.
+
+```{r, out.width='100%'}
+boxplot(Boston$crim, ylab="Per Capita Crime Rate", main="Box plot of crim")
+range(Boston$crim)
+hist(Boston$crim, xlab="Per Capita Crime Rate", main="Histogram of crim")
+?hist
+
+```
+We can see that the Per Capita Crime Rate for suburbs of Boston vary from 0.00632 to 88.97620
+From the boxplot and histogram, we observe that the majority of suburbs have values close to zero. There are however some suburbs that have particularly high crime rates. 
+
+```{r}
+boxplot(Boston$tax, ylab="Full-value property-tax rate per $10,000", main="Box plot of tax")
+hist(Boston$tax, xlab="Full-value property-tax rate per $10,000", main="Histogram of tax")
+range(Boston$tax)
+
+```
+The value of the variable is ranging from 187 to 711. 
+From the histogram, we see that there a huge number of suburbs taking the same tax values far from others. This could happen because they fall under the same tax rate.
+
+```{r}
+Boston %>%
+  group_by(tax) %>%
+  count() %>%
+  arrange(desc(n))
+```
+Here, we see that the value 666 for tac occurs 132 times.
+
+```{r}
+boxplot(Boston$ptratio, ylab="Pupil-Teacher ratio", main="Box plot of ptratio")
+hist(Boston$ptratio, xlab="Pupil-Teacher ratio", main="Histogram of ptratio")
+range(Boston$ptratio)
+
+```
+Pupil-Teacher ratio does not seem to have any huge outliers or gaps and is over a smaller range. However, there are many observations with same value. 
+
+```{r}
+Boston %>%
+  group_by(ptratio) %>%
+  count() %>%
+  arrange(desc(n))
+```
+The observation 20.2 for ptratio occurs for 140 suburbs. 
+
+This results were also observed in the pairwise scatterplot in 7b. We observe that there are some suburbs take the same tax, rad, zn, indus and ptratio values. 
+
+```{r}
+Boston %>%
+  group_by(ptratio, tax, indus, rad, zn) %>%
+  count() %>%
+  arrange(desc(n))
+```
+Here, we verify that 132 of these suburbs have the same values for ptratio, rad, tax, zn and indus. 
+
+```{r}
+Boston %>%
+  group_by(ptratio, tax, indus, rad, zn, crim) %>%
+  count() %>%
+  arrange(desc(n))
+```
+
+Here, when we take crim into consideration with these five variables that have some particular value that keeps on repeating, we don't see a larger cluster with the same value. 
+
+### e. How many of the suburbs in this data set bound the Charles river?
+
+```{r}
+Boston %>%
+        group_by(chas) %>%
+        tally()
+```
+There are 35 suburbs that are bound by the Charles river. 
+
+### f. What are the mean and standard deviation of the pupil-teacher ratio among the towns in this data set?
+
+```{r}
+mean(Boston$ptratio)
+sd(Boston$ptratio)
+```
+
+### g. Which suburb of Boston has highest median value of owner-occupied homes? What are the values of the other predictors for that suburb, and how do those values compare to the overall ranges for those predictors? Comment on your findings.
+
+```{r}
+
+max(Boston$medv)
+maxMedv<-Boston[Boston$medv ==max(Boston$medv),]
+
+```
+It appears that there are 16 suburbs with the highest median value of owner-occupied homes (50). 
+
+```{r}
+percentile <- sapply(Boston[ ,-4], function(x) rank(x)/length(x)) %>%
+  as.data.frame()
+
+perg<-data.frame(percentile[c(rownames(maxMedv)), ])
+perg
+
+sapply(perg, mean)
+```
+
+I create a data frame percentile, which gives the percentile rank for every observation in the data frame, which I then filter for these 16 observations to see where they rank in the ranges of each variable.
+We can see that 16 observations with the highest medv take very similar values, and for many they take quite extreme values.
+
+To simplify the result, I simply took the mean.  Most of the variables are near the 50th percentile while others are more extreme, especially the lstat is in the bottom 10th percentile and the rm in the top 20th percentile. 
+
+
+### h. In this data set, how many of the suburbs average more than six rooms per dwelling? More than eight rooms per dwelling? Comment on the suburbs that average more than eight rooms per dwelling. 
+
+```{r}
+length(which(Boston$rm>6))
+length(which(Boston$rm>8))
+boston8rooms<-Boston[Boston$rm >8,]
+```
+
+```{r}
+boston8rooms_per <-data.frame(percentile[c(rownames(boston8rooms)), ])
+boston8rooms_per
+sapply(boston8rooms_per, mean)
+```
+
+Similar to the previous question, most of the variables don't have extreme values and fall somewhere near the 50th percentile. The exception of lstat which lies in the bottom 10th percentile and medv in the top 10th percentile. 
+
+We could say that these suburbs are more well off. 
