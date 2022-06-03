@@ -1,0 +1,600 @@
+---
+title: "DATA 558 Homework 2"
+author: "Shrusti Ghela"
+date: "4/25/2022"
+output: word_document
+---
+
+### 1. In this problem, we will make use of the Auto data set, which is part of the ISLR2 package. 
+
+```{r}
+library(ISLR2)
+head(Auto)
+```
+
+### a. Fit a least squares linear model to the data, in order to predict mpg using all of the other predictors except for name. Present your results in the form of a table. Be sure to indicate clearly how any qualitative variables should be interpreted.
+```{r}
+Auto_1 <- Auto[1:8]
+head(Auto_1)
+```
+
+```{r}
+lm.fit <- lm(mpg ~ ., data=Auto_1)
+summary(lm.fit)
+```
+```{r}
+library(sjPlot)
+print(tab_model(lm.fit))
+```
+
+Here, the categorical variables 'origin' and 'cylinders' have numerical values. Because of this, R doesn't consider origin and cylinders as categorical variables and instead considers them to be integral/numerical/quantitative variables. Here, the coefficient of the categorical variables represent unit change in the variable when everything else is kept constant. This is nothing but the change between categories. However, there is a problem with this. Any categorical variables can't be fit in a regression model in it's raw form. 
+
+One way to deal with this is to use as.factor(). This helps to convert numeric data to factor. Here, R by default takes the value of origin=1 as the baseline reference against which other categories are compared. Similarly for cylinders it takes 3 as the baseline class against which the other categories are compared. 
+
+```{r}
+lm.fit.1 <- lm(mpg ~ . - origin + as.factor(origin) - cylinders + as.factor(cylinders), data=Auto_1)
+summary(lm.fit.1)
+```
+
+```{r}
+print(tab_model(lm.fit.1))
+```
+
+Here, $\hat \beta _0$ represents the mean of American origin
+$\hat \beta _{European}$ represents the difference between the mean of American origin and European origin
+$\hat \beta _{Japanese}$ represents the difference between the mean of American origin and Japanese origin
+
+Similarly for cylinders, $\hat \beta _0$ represents the mean of cars with 3 cylinders
+$\hat \beta _{cylinders = 4}$ represents the mean of cars with 3 cylinders and 4 cylinders
+$\hat \beta _{cylinders = 5}$ represents the mean of cars with 3 cylinders and 5 cylinders
+$\hat \beta _{cylinders = 6}$ represents the mean of cars with 3 cylinders and 6 cylinders
+$\hat \beta _{cylinders = 8}$ represents the mean of cars with 3 cylinders and 8 cylinders
+
+### b. What is the (training set) mean squared error of this model?
+
+For the first model, without specifying categorical variables. 
+
+```{r}
+mean(lm.fit$residuals^2)
+```
+
+For the model with explicitly specifying categorical variables.
+```{r}
+mean(lm.fit.1$residuals^2)
+```
+
+### c. What gas mileage do you predict for a Japanese car with three cylinders, displacement 100, horsepower of 85, weight of 3000, acceleration of 20, built in the year 1980?
+
+```{r}
+test_data_1c <- data.frame(matrix(c(3, 100, 85, 3000, 20, 80, 3), nrow=1))
+colnames(test_data_1c)<- c(colnames(Auto_1[2:8]))
+test_data_1c
+```
+For the first model (lm.fit),
+```{r}
+predict(lm.fit, test_data_1c)
+```
+For the corrected model (lm.fit.1),
+```{r}
+predict(lm.fit.1, test_data_1c)
+```
+
+### d. On average, holding all other covariates fixed, what is the difference between the mpg of a Japanese car and the mpg of an American car?
+
+According to model 1 (lm.fit), On average, holding all other covariates fixed, the difference between the mpg of a Japanese car and the mpg of an American car is 2*1.43 = 2.86
+
+According to model 2 (lm.fit.1), On average, holding all other covariates fixed, the difference between the mpg of a Japanese car and the mpg of an American car is 2.62 (This is our our interpretation of the $\hat \beta$ for categorical variables as discussed above)
+
+### e. On average, holding all other covariates fixed, what is the change in mpg associated with a 10-unit change in horsepower?
+
+According to lm.fit, the change in mpg associated with a 10-unit change in horsepower holding all other covariates fixed is 0.16951. 
+
+And according to lm.fit.1, the change in mpg associated with a 10-unit change in horsepower holding all other covariates fixed is 0.3490. 
+
+### 2. Consider using only the origin variable to predict mpg on the Auto data set. In this problem, we will explore the coding of this qualitative variable.
+
+### a. First, code the origin variable using two dummy (indicator) variables, with Japanese as the default value. Write out an equation like (3.30) in the textbook, and report the coefficient estimates. What is the predicted mpg for a Japanese car? for an American car? for a European car?
+
+```{r}
+american <- ifelse(Auto$origin == 1,1,0)
+european <- ifelse(Auto$origin == 2,1,0)
+
+Auto_2a <- data.frame(mpg=Auto$mpg, american, european)
+
+lm.fit.2a <- lm(mpg ~ ., data=Auto_2a)
+summary(lm.fit.2a)
+```
+$\hat y _i = \beta _0 = 30.4506$ if the $i^{th}$ car is Japanese
+$\hat y _i = \beta _0 + \beta _{American} = 30.4506 - 10.4172 = 20.0334$ if the $i^{th}$ car is American
+$\hat y _i = \beta _0 + \beta _{European} = 30.4506 - 2.8477 = 27.6029$ if the $i^{th}$ car is European
+
+Here, $\hat y _i$ represents the predicted value of mpg. 
+
+### b. Now, code the origin variable using two dummy (indicator) variables, with American as the default. Write out an equation like (3.30) in the textbook, and report the coefficient estimates. What is the predicted mpg for a Japanese car? for an American car? for a European car?
+
+```{r}
+japanese <- ifelse(Auto$origin == 3,1,0)
+european <- ifelse(Auto$origin == 2,1,0)
+
+Auto_2b <- data.frame(mpg=Auto$mpg, japanese , european)
+head(Auto_2b)
+lm.fit.2b <- lm(mpg ~ ., data=Auto_2b)
+summary(lm.fit.2b)
+```
+$\hat y _i = \beta _0 = 20.0335$ if the $i^{th}$ car is American
+$\hat y _i = \beta _0 + \beta _{Japanese} = 20.0335 + 10.4172 = 30.4507$ if the $i^{th}$ car is Japanese
+$\hat y _i = \beta _0 + \beta _{European} = 20.0335 + 7.5695 = 27.603$ if the $i^{th}$ car is European
+
+Here, $\hat y _i$ represents the predicted value of mpg. 
+
+### c. Now, code the origin variable using two variables that take on values of +1 or −1. Write out an equation like (3.30) in the textbook, and report the coefficient estimates. What is the predicted mpg for a Japanese car? for an American car? for a European car?
+
+```{r}
+cjapanese <- ifelse(Auto$origin == 3,1,-1)
+camerican <- ifelse(Auto$origin == 1,1,-1)
+
+Auto_2c <- data.frame(mpg=Auto$mpg, camerican, cjapanese)
+head(Auto_2c)
+lm.fit.2c <- lm(mpg ~ ., data=Auto_2c)
+summary(lm.fit.2c)
+```
+$\hat y _i = \beta _0 - \beta _{Japanese} - \beta _{American}= 25.2421 - 1.4238 + 3.7847 = 27.603$ if the $i^{th}$ car is European
+$\hat y _i = \beta _0 + \beta _{Japanese} - \beta _{American} = 25.2421 + 1.4238 + 3.7847  = 30.4506$ if the $i^{th}$ car is Japanese
+$\hat y _i = \beta _0 + \beta _{American} - \beta _{Japanese} = 25.2421 - 3.7847 - 1.4238= 20.0336$ if the $i^{th}$ car is American
+
+Here, $\hat y _i$ represents the predicted value of mpg. 
+
+### d. Finally, code the origin variable using a single variable that takes on values of 0 for Japanese, 1 for American, and 2 for European. Write out an equation like (3.30) in the textbook, and report the coefficient estimates. What is the predicted mpg for a Japanese car? for an American car? for a European car?
+
+```{r}
+Auto_2d <- data.frame(mpg=Auto$mpg, origin=Auto$origin)
+Auto_2d$origin[Auto_2d$origin == 3] <- 0
+```
+Here, if we don't consider origin to be a categorical variable, we get a model that looks something like this
+
+```{r}
+lm.fit.2d <- lm(mpg ~ origin, data=Auto_2d)
+summary(lm.fit.2d)
+```
+$\hat y _i = \beta _0 = 25.2395 $ if the $i^{th}$ car is Japanese
+$\hat y _i = \beta _0 + \beta _1*x_{i1} = 25.2395 - 1.8453 = 23.3942$ if the $i^{th}$ car is American
+$\hat y _i = \beta _0 + \beta _1*x_{i1} = 25.2395 - 2*1.8453 = 21.5489$ if the $i^{th}$ car is European
+
+Here, $\hat y _i$ represents the predicted value of mpg. 
+
+There is a problem with this approach. We considered Japanese to be 0, American to be 1 and European to be 2. If we consider this as numeric data, we are implicitly saying that European is two-times American. And our fitted values (predictions) depend on this arbitrary coding. We could do this in a way that Japaneses is 1, American is 2 and European is 3. Our answers would totally change. 
+
+This is the problem with treating categorical data in raw form in regression problems. This could be simply solved by considering the numeric data as factors using the as.factor(). 
+
+```{r}
+lm.fit.2d.1 <- lm(mpg ~ as.factor(origin), data=Auto_2d)
+summary(lm.fit.2d.1)
+```
+$\hat y _i = \beta _0 = 30.4506 $ if the $i^{th}$ car is Japanese
+$\hat y _i = \beta _0 + \beta _{American} = 30.4506 -10.4172 = 20.0334$ if the $i^{th}$ car is American
+$\hat y _i = \beta _0 + \beta _{European} = 30.4506 - 2.8477 = 27.6029$ if the $i^{th}$ car is European
+
+Here, $\hat y _i$ represents the predicted value of mpg. 
+
+### e. Comment on your results in (a)-(d)
+
+Overall, we considered five models. In (a), we constructed two dummy variables by considering Japanese as the default value. Here, we converted the raw categorical values 1,2,3 which could be mistaken as quantitative values to indicator variables for two classes (One-hot encoding). In (b), we did the same thing by changing the default class. We can see that when we changed the default class, we do not observe any change in the predicted values. This is because when we use dummy variables, we don't have an order to the classes and this could not be mistaken as quantitative values. 
+
+In (c), we don't encode the dummy variables using 0 and 1 but instead use -1 and 1. This changes our equation to predict mpg but does not change our final values. Because the coefficients for the model are calculated based on how the data is encoded. 
+So, irrespective of the encoding type(i.e, 0, 1 or -1,1) we arrive at the same result. 
+
+In (d), we don't use dummy variables to encode the data. Instead we use one variable to encode three classes. There is a problem with this approach. We considered Japanese to be 0, American to be 1 and European to be 2. If we consider this as numeric data, we are implicitly saying that European is two-times American. And our fitted values (predictions) depend on this arbitrary coding. We could do this in a way that Japaneses is 1, American is 2 and European is 3. Our answers would totally change. Because of this, we arrive at different results as compared to (a), (b) and (c). This could be simply solved by considering the numeric data as factors using the as.factor() function. It Converts a column from numeric to factor. This is basically what we did using dummy variables. 
+
+### 3. Fit a model to predict mpg on the Auto dataset using origin and horsepower, as well as an interaction between origin and horsepower. Present your results, and write out an equation like (3.35) in the textbook. On average, how much does the mpg of a Japanese car change with a one-unit increase in horsepower? How about the mpg of an American car? a European car?
+
+```{r}
+lm.fit.3 <- lm(mpg~ as.factor(origin) + horsepower + as.factor(origin)*horsepower, data =Auto )
+summary(lm.fit.3)
+```
+$\hat y_i = \hat \beta _0 + \hat \beta _3 *x_{i horsepower} = 34.476496 - 0.121320*horsepower$ if the $i^{th}$ car is American
+$\hat y_i = \hat \beta _0 + \hat \beta_1 + \hat \beta _3 *x_{i horsepower} + \hat \beta _4 *x_{i horsepower}= 34.476496 + 10.997230 - 0.121320*horsepower - 0.100515*horsepower = 45.47373 - 0.221835*horsepower $  if the $i^{th}$ car is  European
+$\hat y_i = \hat \beta _0 + \hat \beta _2 + \hat \beta _3 *x_{i horsepower} + \hat \beta _5 *x_{i horsepower}  = 34.476496 + 14.339718 - 0.121320*horsepower - 0.108723*horsepower = 48.81621 - 0.230043*horsepower$ if the $i^{th}$ car is Japanese
+
+On average, for a Japanese car,  with one-unit increase in horsepower, the mpg decreases by 0.230043 units. 
+On average, for a European car,  with one-unit increase in horsepower, the mpg decreases by 0.221835 units.  
+On average, for a American car,  with one-unit increase in horsepower, the mpg decreases by 0.121320 units.
+
+### 4. Consider using least squares linear regression to predict weight (Y) using height.
+
+### a. Suppose that you measure height in inches (X1), fit the model $Y = \beta _0 + \beta _1X_1 + \epsilon$ and obtain the coefficient estimates $\hat \beta _0  = −165.1$ and $\hat \beta _1 = 4.8$ What weight will you predict for an individual who is 64 inches tall?
+
+```{r}
+pred <- -165.1 + 4.8*64
+pred
+```
+
+### b. Now suppose that you want to measure height in feet (X2) instead of inches. (There are 12 inches to a foot.) You fit the model $Y = \beta ^* _0 + \beta ^* _1 X_2 + \epsilon$ What are the coefficient estimates? What weight will you predict for an individual who is 64 inches tall (i.e. 5.333 feet)?
+
+$Y = \beta _0 + \beta _1X_1 + \epsilon = \beta ^* _0 + \beta ^* _1 X_2 + \epsilon$
+
+But we know, 
+
+$X_2 * 12 = X_1$
+
+$\beta _0 + \beta _1 (12 X_2)  = \beta ^* _0 + \beta ^* _1 X_2$
+
+$\beta _0 + 12 \beta _1 X_2 = \beta ^* _0 + \beta ^* _1 X_2$
+
+$\beta ^* _0 = \beta _0$
+and $\beta ^* _1 = 12 \beta _1$
+
+$\beta ^* _0 = -165.1$
+$\beta ^* _1 = 57.6$
+
+```{r}
+pred1 <- -165.1 + 57.6*5.333
+pred1
+```
+
+### c. Now suppose you fit the model $Y = \beta _0 + \beta _1 X_1 + \beta _2 X_2 + \epsilon$, which contains both height in inches and height in feet as predictors. Provide a general expression for the least squares coefficient estimates for this model.
+
+Our main intuition in Linear Regression is that the coefficients of the variables denoted by $\beta_p$ is nothing but the change in the prediction or the output variable when there is a unit-change in X_p such that all other variables remain constant. 
+
+However, in this case, we can't interpret the $\beta _1 X_1$ and $\beta _2 X_2$ using that intuition. Because of the fact that $X2 = X1/12$. If X1 increases, X2 automatically increases. There is no possibility that there is a unit change in X1 and X2 remains constant. X1 and X2 are practically the same variables just on a different scale. Hence, they are perfectly correlated. 
+
+When independent variables are highly correlated, change in one variable would cause change to another and so the model results fluctuate significantly. The model results will be unstable and vary a lot given a small change in the data or model. 
+
+Looking at it mathematically, $X^TX$ would not be invertible because $X2 = X1/12$ and hence we can't calculate $\hat \beta$ 
+
+Another way to look at it is, 
+Let us consider the model that only depends on X1 
+
+$Y = \beta _0 + \beta _1 X1 + \epsilon$
+
+It could be written as, 
+
+$Y = \beta _0 + (\beta _1/2) X1 + (\beta _1/2) X1+ \epsilon$
+
+$\implies Y = \beta _0 + (\beta _1/2) X1 + (\beta _1/2) X1+ \epsilon$
+
+$\implies Y = \beta _0 + (\beta _1/2) X1 + \beta _1 (X1/2) + \epsilon$
+
+$\implies Y = \beta _0 + (\beta _1/2) X1 + \beta _1 (6X2) + \epsilon$
+
+$\implies Y = \beta _0 + (\beta _1/2) X1 + 6 \beta _1 X2 + \epsilon$
+
+This could be re-written as, 
+
+$ Y = \beta _0 + \beta _3 X1 + \beta _2 X2 + \epsilon$
+
+where $\beta _3 = \beta _1/2$ and $\beta _2 = 6 \beta _1$ 
+
+So, these $\beta _3$ and $\beta _2$ could be essentially calculated using just X1 or X2. Hence, we verify two problems that are caused due to multicollinearity
+- The coefficient estimates can swing wildly based on which other independent variables are in the model. The coefficients become very sensitive to small changes in the model.
+- Multicollinearity reduces the precision of the estimated coefficients, which weakens the statistical power of the regression model. 
+Essentially, Multicollinearity makes it hard to interpret your coefficients, and it reduces the power of the model to identify independent variables that are statistically significant. 
+
+Dealing with this is fairly simple. One of the simplest way to deal with this is to regularize this equation. We could use Lasso to generate sparse input variables. 
+
+### d. How do the (training set) mean squared errors compare for three models fit in (a)–(c)?
+The training MSE for models in a and b would be equal, because they are practically the same model. However, due to multicollinearity, the model of c does not mathematically exist. Hence MSE is out of question. 
+
+### 5. Suppose we wish to perform classification of a binary response in a setting with $p = 1: that is, X \in \R, and Y \in {1, 2}$. We assume that the observations in Class 1 are drawn from a $\mathcal{N} (\mu, \sigma ^2)$ distribution, and that the observations in Class 2 are drawn from an Uniform[−2, 2] distribution.
+
+### a. Derive an expression for the Bayes decision boundary: that is, for the set of x such that $P (Y = 1 | X = x) = P (Y = 2 | X = x)$. Write it out as simply as you can.
+
+$P (Y = 1 | X = x) = P (Y = 2 | X = x)$ 
+
+Using the Bayes' theorem, 
+
+$P (Y = k | X = x) = \frac{\pi _k f_k(x)}{\sum _{i=1}^n \pi _i f_i(x)}$
+
+For Bayes' Decision boundary, 
+$\frac{\pi _1 f_1(x)}{\displaystyle\sum _{i=1}^2 \pi _i f_i(x)} = \frac{\pi _2 f_2(x)}{\displaystyle\sum _{i=1}^2 \pi _i f_i(x)}$
+
+This boundary only exist in the range where both the classes are defined, in cases when only one of the class exist, that would only be the true class. 
+
+So, for the problem at hand, the range where both these will exist would be when $x \in [-2, 2]$ 
+
+$ \implies \pi _1 f_1(x) = \pi _2 f_2(x)$
+
+From the question we know that, 
+
+$f_1(x) = \frac {1}{\sqrt {2 \pi} \sigma} \exp \bigg(  - \frac {1}{ 2 \sigma ^2}(x - \mu)^2 \bigg)$
+
+$f_2(x) = \frac {1}{2 - (-2)} = \frac{1}{4}$ for $-2 \le x \le 2$
+ 
+$ \bigg(\frac {1}{\sqrt {2 \pi} \sigma} \exp \bigg(  - \frac {1}{ 2 \sigma ^2}(x - \mu)^2 \bigg) \bigg) \pi _1 = \bigg(\frac{1}{4}\bigg) \pi _2$
+
+Rearranging the terms, we get, 
+
+$x = \mu \pm \sqrt{2 \sigma ^2 \bigg(log \bigg ( \frac {\sqrt {8} \pi _1}{ \sqrt {\pi} (1-\pi_1) \sigma }\bigg)\bigg)}$
+
+These values of x provide the Bayes decision boundary. 
+
+### b. Suppose (for this sub-problem only) that $\mu = 0, \sigma = 1, \pi _1 = 0.45$ (here, $\pi _1$ is the prior probability that an observation belongs to Class 1). Describe the Bayes classifier in this case: what range of x values will get assigned to Class 1, and what range of x values will get assigned to Class 2? Write out your answer as simply as you can. Draw a picture showing the set of x values assigned to Class 1 and the set of x values assigned to Class 2.
+
+Using the equation derived in the above question, we substitute the values of $\mu, \sigma, \pi _1$ from the question and we get $x = \pm 0.73032$ 
+
+So, for $x \in [-0.7303, 0.7303], Bayes classifier predicts class 1.  
+and for $ x \in [-2, -0.7303] and [0.7303, 2], Bayes classifier predicts class 2.
+
+for $x \ge 2$ and $x \le 2$ there only exists one class, there is no uncertainty. 
+
+### c. Now suppose we observe n training observations $(x_1, y_1), . . . , (x_n, y_n)$. Explain how you could use these observations to estimate $\mu, \sigma, \pi _1$ (instead of using the values that were given in part (b))
+
+Now suppose we are given data with n training observations, we could easily calculate $\mu, \sigma, \pi _1$ 
+
+$\mu = \frac {1}{n_1} \displaystyle\sum _{i:y_i = 1}x_i$
+
+$\sigma = \sqrt{\frac {\displaystyle \sum _{i:y_i = 1} (x_i - \mu)^2}{n_1}}$
+
+$\pi _1 = \frac {n_1}{n}$
+
+### d. Given a test observation $X = x_0$, provide an estimate of $P (Y = 1 | X = x_0)$. Your answer should involve only the training observations $(x_1, y_1), . . . , (x_n, y_n)$ and the test observation $x_0$, and no unknown parameters.
+
+$P (Y = 1 | X = x_0) = \frac{\pi _1 f_1(x)}{\displaystyle\sum _{i=1}^2 \pi _i f_i(x)}$
+
+$P (Y = 1 | X = x_0) = \frac{\pi _1 f_1(x)}{\pi _1 f_1(x) +\pi _2 f_2(x)}$
+
+$= \frac{\bigg(\frac {n_1}{n}\bigg)\bigg[ \frac {1}{\sqrt {2 \pi} \sqrt{\frac {\displaystyle \sum _{i:y_i = 1} (x_i - \frac {1}{n_1} \displaystyle\sum _{i:y_i = 1}x_i)^2}{n_1}}} \exp \bigg(  - \frac {\bigg(x_0 - \frac {1}{n_1} \displaystyle\sum _{i:y_i = 1}x_i\bigg)^2 }{\bigg( 2 \frac {\displaystyle \sum _{i:y_i = 1} (x_i - \frac {1}{n_1} \displaystyle\sum _{i:y_i = 1}x_i)^2}{n_1}\bigg)}\bigg)\bigg]}{\bigg(\frac {n_1}{n}\bigg)\bigg( \frac {1}{\sqrt {2 \pi} \sqrt{\frac {\displaystyle \sum _{i:y_i = 1} (x_i - \frac {1}{n_1} \displaystyle\sum _{i:y_i = 1}x_i)^2}{n_1}}} \exp \bigg(  - \frac {\bigg(x_0 - \frac {1}{n_1} \displaystyle\sum _{i:y_i = 1}x_i\bigg)^2 }{\bigg( 2 \frac {\displaystyle \sum _{i:y_i = 1} (x_i - \frac {1}{n_1} \displaystyle\sum _{i:y_i = 1}x_i)^2}{n_1}\bigg)}\bigg)\bigg) + \frac{1}{4}\frac {n-n_1}{n} }$
+
+### 6. This problem has to do with logistic regression.
+
+### a. Suppose you fit a logistic regression to some data and find that for a given observation $x = (x_1, . . . , x_p)^T$ , the estimated log-odds equals 0.7. What is $P (Y = 1 | X = x)$?
+
+$log\bigg(\frac {p(x)}{1-p(x)}\bigg) = 0.7$
+
+$0.7 = \beta _0 + \beta _1 X_1 + ... + \beta _p X_p$ 
+
+$P (Y = 1 | X = x)  = \frac {e^{\beta _0 + \beta _1 X_1 + ... + \beta _p X_p}}{1 + e^{\beta _0 + \beta _1 X_1 + ... + \beta _p X_p}}$
+
+$ = \frac {e^{0.7}}{1 + e^{0.7}}$
+
+$ = \frac {2.01375}{3.01375}$ 
+
+$\implies P (Y = 1 | X = x) = 0.66819$
+
+### b. In the same setting as (a), suppose you are now interested in the observation $x∗ = (x_1 + 1, x_2 − 1, x_3 + 2, x_4, . . . , x_p)^T$ . In other words, $x^∗_1 = x_1 + 1, x^∗_2 = x_2 − 1, x^∗_3 = x_3 + 2$, and $x^∗_j = x_j for j = 4, . . . , p$. Write out a simple expression for $P (Y = 1 | X = x∗)$. Your answer will involve the estimated coefficients in the logistic regression model, as well as the number 0.7.
+
+$0.7 = \beta _0 + \beta _1 (X^*_1 - 1) + \beta _2 (X^*_2 + 1) +\beta _3 (X^*_3 - 2)... + \beta _p X_p$ 
+
+$0.7 = \beta _0 - \beta_1 + \beta_2 - 2 \beta_3 + \beta _1 X^*_1 + \beta _2 X^*_2 +\beta _3 X^*_3... + \beta _p X_p$
+
+$0.7 + \beta_1 - \beta_2 + 2 \beta_3 =   \beta _0 + \beta _1 X^*_1 + \beta _2 X^*_2 +\beta _3 X^*_3... + \beta _p X_p$
+
+$P (Y = 1 | X = x∗) = \frac{e^{0.7 + \beta_1 - \beta_2 + 2 \beta_3}}{1+ e^{0.7 + \beta_1 - \beta_2 + 2 \beta_3}}$
+
+### 7. In this problem, you will generate data with p = 2 features and a qualitative response with K = 3 classes, and n = 50 observations per class. You will then apply linear discriminant analysis to the data.
+
+### a.  Generate data such that the distribution of an observation in the kth class follows a $\mathcal{N}(\mu _k,\sum)$ distribution, for k = 1, . . . , K. That is, the data follow a bivariate normal distribution with a mean vector $\mu_k$ that is specific to the kth class, and a covariance matrix $\sum$ that is shared across the K classes. Choose $\sum$ and $\mu_1, . . . , \mu_k$ such that there is some overlap between the K classes, i.e. no linear decision boundary is able to perfectly separate the training data. Specify your choices for $\sum$ and $\mu_1, . . . , \mu_k$.
+
+$\mu_1 = \begin{pmatrix}0\\0\end{pmatrix}$
+$\mu_2 = \begin{pmatrix}2\\2\end{pmatrix}$
+$\mu_3 = \begin{pmatrix}2\\0\end{pmatrix}$
+
+$\sum = \begin{pmatrix}1 & 0\\0 & 1\end{pmatrix}$
+
+```{r}
+library(MASS)
+library(mvtnorm)
+
+set.seed(304)
+
+mu_1 <- c(0,0)
+mu_2 <- c(2, 2)
+mu_3 <- c(2, 0)
+sigma <- matrix(c(1,0,0,1), 2,2)
+
+red_data <- mvrnorm(50, mu_1, sigma)
+blue_data <- mvrnorm(50, mu_2, sigma)
+green_data <- mvrnorm(50, mu_3, sigma)
+
+trainRed7a <- data.frame(red_data, Group ="red")
+trainBlue7a <- data.frame(blue_data, Group = "blue")
+trainGreen7a <- data.frame(green_data, Group = "green")
+trainData7a <- rbind.data.frame(trainBlue7a, trainRed7a, trainGreen7a)
+
+colors = c("red"="red", "blue" = "blue", "green" = "green3")
+
+library(ggplot2)
+
+ggplot(trainData7a, aes(x=X1, y=X2))+
+  geom_point(size=2, pch=16, aes(color=Group))+
+  labs(x = "X1",
+       y="X2",
+       title = "Generated Training Data",
+       color="Class")+
+  scale_color_manual(values=colors)
+
+```
+
+### b. Plot the data, with the observations in each class displayed in a different color. Compute and display the Bayes decision boundary (or Bayes decision boundaries) on this plot. This plot should look something like the right-hand panel of Figure 4.6 in the textbook (although no need to worry about shading the background, and also you don’t need to display the LDA decision boundary for this sub-problem — you will do that in the next sub-problem). Be sure to label which region(s) of the plot correspond to each class.
+
+```{r}
+x <- seq(-4, 4, length.out = 300)
+y <- seq(-3, 5, length.out = 300)
+test_data <- expand.grid(X1 = x, X2 = y)
+#head(test_data)
+```
+
+```{r}
+library(dplyr) 
+
+red <- dmvnorm(test_data, mean = mu_1, sigma = sigma, log = FALSE, checkSymmetry = TRUE)
+blue  <- dmvnorm(test_data, mean = mu_2, sigma = sigma, log = FALSE, checkSymmetry = TRUE)
+green <- dmvnorm(test_data, mean = mu_3, sigma = sigma, log = FALSE, checkSymmetry = TRUE)
+
+test_data <- cbind.data.frame(test_data, red, blue, green)
+
+test_data <-test_data %>% mutate(pred =
+                     case_when(red > blue & red > green ~ "red", 
+                               green>blue & green>red ~ "green",
+                               blue>red & blue>green ~ "blue"))
+
+colors <- c("red" = "red", "blue"="blue", "green"= "green2")
+```
+
+```{r}
+ggplot() + 
+geom_point(data=test_data, aes(x=X1, y=X2, color=pred), alpha=0.01)+
+geom_point(data=trainData7a, aes(x=X1, y=X2, color=Group)) + 
+  labs(x = "X1",
+       y="X2",
+       title = "Bayes Decision Boundary",
+       color="Class")+
+  scale_color_manual(values=colors)
+
+```
+### c. Fit a linear discriminant analysis model to the data, and make a plot that displays the observations as well as the decision boundary (or boundaries) corresponding to this fitted model. How does the LDA decision boundary (which can be viewed as an estimate of the Bayes decision boundary) compare to the Bayes decision boundary that you computed and plotted in (b)?
+
+```{r}
+library(MASS)
+lda.fit <- lda(Group~X1+X2, data=trainData7a)
+
+```
+
+
+```{r}
+test_data <- cbind(test_data, pred_lda = predict(lda.fit, test_data)$class)
+```
+
+
+```{r}
+
+ggplot() + 
+geom_point(data=test_data, aes(x=X1, y=X2, color=pred_lda), alpha=0.01)+
+geom_point(data=trainData7a, aes(x=X1, y=X2, color=Group)) + 
+  labs(x = "X1",
+       y="X2",
+       title = "LDA Decision Boundary",
+       color="Class")+
+  scale_color_manual(values=colors)
+
+```
+We see that LDA does a pretty good job estimating the Bayes Classifier that is the optimal case. 
+
+### d. Report the K × K confusion matrix for the LDA model on the training data. The rows of this confusion matrix represent the predicted class labels, and the columns represent the true class labels. (See Table 4.4 in the textbook for an example of a confusion matrix.) Also, report the training error (i.e. the proportion of training observations that are mis-classified).
+
+
+```{r}
+trainData7a <- cbind(trainData7a, pred_lda = predict(lda.fit, trainData7a)$class)
+head(trainData7a)
+```
+```{r}
+library(caret)
+expected_value <- factor(trainData7a$pred_lda)
+predicted_value <- factor(trainData7a$Group)
+cm7d <- confusionMatrix(data=predicted_value, reference = expected_value)
+
+cm7d
+```
+Training error = 0.24
+
+### e. Generate n = 50 test observations in each of the K classes, using the bivariate normal distributions from (a). Report the K × K confusion matrix, as well as the test error, that results from applying the model fit to the training data in (c) to your test data.
+
+```{r}
+set.seed(31)
+
+red_D<- mvrnorm(50, mu_1, sigma)
+blue_D <- mvrnorm(50, mu_2, sigma)
+green_D <- mvrnorm(50, mu_3, sigma)
+
+red_7e<- data.frame(red_D, Group ="red")
+blue_7e <- data.frame(blue_D, Group = "blue")
+green_7e <- data.frame(green_D, Group = "green")
+test_data_7e <- rbind.data.frame(red_7e, blue_7e, green_7e)
+
+```
+
+```{r}
+test_data_7e <- cbind(test_data_7e, pred_lda = predict(lda.fit, test_data_7e)$class)
+
+expected_value7e <- factor(test_data_7e$pred_lda)
+predicted_value7e <- factor(test_data_7e$Group)
+cm7e <- confusionMatrix(data=predicted_value7e, reference = expected_value7e)
+ 
+cm7e
+
+```
+Test Error = 0.187
+
+### f. Compare your results from (d) and (e), and comment on your findings.
+
+We see that for this particular choice of$\mu _k$ and the random seed, Test error is less than training error. We see how LDA performs similar to Bayes classifier because the assumption of equal variance across all classes is satisfied. 
+
+### 8. In this problem, you will apply quadratic discriminant analysis to the data from Q7.
+
+### a. Fit a quadratic discriminant analysis model to the training data from Q7, and make a plot that displays the observations as well as the QDA decision boundary (or boundaries) corresponding to this fitted model. Be sure to label which region(s) of the plot correspond to each class. How does the QDA decision boundary compare to the Bayes decision boundary that you computed in Q7(b)?
+
+```{r}
+library(MASS)
+qda.fit <- qda(Group~X1+X2, data=trainData7a)
+```
+
+```{r}
+test_data_7e <- cbind(test_data_7e, pred_qda = predict(qda.fit, test_data_7e)$class)
+```
+
+
+```{r}
+ggplot() + 
+geom_point(data=test_data_7e, aes(x=X1, y=X2, color=pred_qda), alpha=0.01)+
+geom_point(data=trainData7a, aes(x=X1, y=X2, color=Group)) + 
+  labs(x = "X1",
+       y="X2",
+       title = "QDA Decision Boundary",
+       color="Class")+
+  scale_color_manual(values=colors)
+```
+
+### b. Report the K × K confusion matrix for the QDA model on the training data, as well as the training error.
+
+```{r}
+trainData7a <- cbind(trainData7a, pred_qda = predict(qda.fit, trainData7a)$class)
+
+expected_value8b <- factor(trainData7a$pred_qda)
+predicted_value8b <- factor(trainData7a$Group)
+cm8b <- confusionMatrix(data=predicted_value8b, reference = expected_value8b)
+
+cm8b
+```
+Training error = 0.24
+
+### c. Repeat (b), but this time using the test data generated in Q7. (That is, apply the model fit to the training data in (a) in order to calculate the test error.)
+```{r}
+test_data_7e <- cbind(test_data_7e, pred_qda = predict(qda.fit, test_data_7e)$class)
+
+expected_value8c <- factor(test_data_7e$pred_qda)
+predicted_value8c <- factor(test_data_7e$Group)
+cm8c <- confusionMatrix(data=predicted_value8c, reference = expected_value8c)
+
+cm8c
+```
+Test error = 0.187
+
+### d. Compare your results in (b) and (c), and comment on your findings.
+
+Similar to the 7th question, we see that the test error is less than the training error. We see that for this particular choice of$\mu _k$ and the random seed, Test error is less than training error. 
+
+### e. Which method had smaller training error in this example: LDA or QDA? Comment on your findings.
+
+For this particular example, i.e, $\mu_1, \mu_2 and \mu_3$ and $\sigma$, we arrive at the same training error rates for both LDA and QDA. Comparing the decision boundaries of both the models, we see that both LDA and QDA give very similar boundaries to the Bayes decision boundary. We also observe that for this particular case, the QDA gives almost linear decision boundary. 
+
+### f. Which method had smaller test error in this example: LDA or QDA? Comment on your findings.
+
+For this particular example, i.e, $\mu_1, \mu_2 and \mu_3$ and $\sigma$, we arrive at the same test error rates for both LDA and QDA. Comparing the decision boundaries of both the models, we see that both LDA and QDA give very similar boundaries to the Bayes decision boundary. We also observe that for this particular case, the QDA gives almost linear decision boundary. Even though the error is same, we still see a difference between misclassification by QDA and LDA. 
+
+### 9. We have seen in class that the least squares regression estimator involves finding the coefficients $\beta_0, \beta_1, . . . , \beta_p$ that minimize the quantity $\displaystyle\sum_{i=1}^n (y_i − (\beta_0 + \beta_1x_{i1} + . . . + \beta_p x_{ip}))^2$. By contrast, the ridge regression estimator (which we will discuss in Chapter 6) involves finding the coefficients that minimize $\displaystyle\sum_{i=1}^n (y_i − (\beta_0 + \beta_1x_{i1} + . . . + \beta_p x_{ip}))^2+ \lambda ($\beta_0^2, \beta_1^2, . . . , \beta_p^2$) for some positive constant $\lambda$ For simplicity, assume that $\beta_0 = 0$. Derive an expression for the ridge regression estimator, i.e. for the coefficient estimates $\hat \beta_0, \hat \beta_1, . . . , \hat \beta_p$
+
+$\hat \beta_{ridge} = \underset{\beta}{\operatorname{argmin}} \displaystyle \sum _{i= 1}{n} (y_i - x_i^T \beta)^2 + \lambda \|\beta\|^2$
+
+$\hat \beta_{ridge} = \underset{\beta}{\operatorname{argmin}}\|X\beta - Y\|^2 + \lambda \|\beta\|^2$
+
+$\displaystyle \frac{\partial \beta_{ridge}}{\partial \beta}$ = 0
+
+$\implies 2X^T(X\beta - Y) + 2\lambda\beta = 0$
+
+Rearranging, 
+
+$(X^TX + \lambda I)\beta - X^TY = 0$
+
+$\hat \beta_{ridge} = (X^TX + \lambda I)^{-1} X^TY$
+
+
+
