@@ -1,0 +1,1004 @@
+---
+title: "DATA 558 Homework 4"
+author: "Shrusti Ghela"
+date: "5/24/2022"
+output:
+  word_document: default
+  pdf_document: default
+---
+
+### 1. Suppose that a curve $\hat g$ is computed to smoothly fit a set of n points using the following formula:
+
+### $\hat g = \underset{g}{\operatorname{argmin}}\bigg (\displaystyle \sum_{i=1}^{n}(y_i - g(x_i))^2 + \lambda \int [g^{(m)}(x)]^2 \,dx \bigg)$
+
+### where $g^{(m)}$ represents the $m^{th}$ derivative of g (and $g^{(0)} = g$). Provide example sketches of $\hat g$ in each of the following scenarios.
+
+Before I begin, let me generate a set of datapoints on which we sketch the changes in $\hat g$ under the given conditions. 
+
+The example I am going to use is:
+
+$Y = g(X) + \epsilon$
+
+Here $g(X)$ is the true data-generating function. 
+
+Let us take $g(X) = \sin(10(X+0.1))$
+
+Here, $X \sim \mathcal{U}(50)$ and $\epsilon \sim \mathcal{N}(0,1)$
+
+```{r}
+library(ggplot2)
+set.seed(1)
+
+X <- runif(50)
+eps <- rnorm(50)
+Y <- sin(10*(X + 0.1)) + eps
+generating_fn <- function(X) {sin(10*(X + 0.1))}
+df <- data.frame(X, Y)
+
+ggplot(df, aes(x = X, y = Y)) + 
+  geom_point(alpha = 0.5) + 
+  stat_function(fun = generating_fn, aes(col = "True data generating function")) + 
+  scale_color_manual(values = "blue") + 
+  theme(legend.position = "right", legend.title = element_blank())
+```
+
+### a. $\lambda = \infty, m = 0$
+
+For $m = 0$, we get 
+
+$\hat g = \underset{g}{\operatorname{argmin}}\bigg ( \displaystyle \sum_{i=1}^{n}(y_i - g(x_i))^2 + \lambda \int [g(x)]^2 \,dx \bigg )$
+
+So as $\lambda$ increases, the penalty term gets more and more dominant.As $\lambda \to \infty$, this forces $g(x) \to 0$. 
+
+Hence, $\hat g(x) = 0$
+
+```{r}
+ggplot(df, aes(x = X, y = Y)) + 
+  geom_point(alpha = 0.5) + 
+  stat_function(fun = generating_fn, aes(col = "True data generating Function")) + 
+  geom_hline(aes(yintercept = 0, linetype = "Example g(X)"), col = "red") + 
+  scale_color_manual(values = "blue") + 
+  theme(legend.position = "right", legend.title = element_blank())
+```
+
+### b. $\lambda = \infty, m = 1$
+
+For m = 1, we get 
+
+$\hat g = \underset{g}{\operatorname{argmin}}\bigg (\displaystyle \sum_{i=1}^{n}(y_i - g(x_i))^2 + \lambda \int [g^{\prime}(x)]^2 \,dx \bigg)$
+
+As $\lambda \to \infty$, this forces $g^{\prime}(x) \to 0$. 
+
+This means we would get $\hat g (x) =$ (some constant) $c$
+
+Now, we can take $\hat g (x) = c = \sum_{i=1}^{n}y_i$, because all other constant function will have a first derivative of zero but $\hat g (x) = c = \sum_{i=1}^{n}y_i$ will also minimize the RSS. 
+
+```{r}
+ggplot(df, aes(x = X, y = Y)) + 
+  geom_point(alpha = 0.5) + 
+  stat_function(fun = generating_fn, aes(col = "True data generating Function")) + 
+  geom_hline(aes(yintercept = mean(Y), linetype = "Example g(X)"), col = "red") + 
+  scale_color_manual(values = "blue") + 
+  theme(legend.position = "right", legend.title = element_blank())
+```
+
+### c. $\lambda = \infty, m = 2$
+
+For m = 2, we get 
+
+$\hat g = \underset{g}{\operatorname{argmin}}\bigg (\displaystyle \sum_{i=1}^{n}(y_i - g(x_i))^2 + \lambda \int [g^{\prime \prime}(x)]^2 \,dx \bigg)$
+
+As $\lambda \to \infty$, this forces $g^{\prime \prime}(x) \to 0$. 
+
+This means we would get $\hat g (x) = wx + b$ 
+
+Now, we can take $\hat g (x) = wx+ b$ to be the linear least squares line, because all other linear function will have a second derivative of zero but LLS will also minimize the RSS. 
+
+```{r}
+ggplot(df, aes(x = X, y = Y)) + 
+  geom_point(alpha = 0.5) + 
+  stat_function(fun = generating_fn, aes(col = "True data generating Function")) + 
+  geom_smooth(method = "lm", formula = "y ~ x", se = F, aes(col = "Example g(X)"), size=0.5) + 
+  scale_color_manual(values = c("red", "blue")) + 
+  theme(legend.position = "right", legend.title = element_blank())
+```
+
+### d. $\lambda = \infty, m = 3$
+
+For m = 3, we get 
+
+$\hat g = \underset{g}{\operatorname{argmin}}\bigg (\displaystyle \sum_{i=1}^{n}(y_i - g(x_i))^2 + \lambda \int [g^{(3)}(x)]^2 \,dx \bigg)$
+
+As $\lambda \to \infty$, this forces $g^{(3)}(x) \to 0$. 
+
+This means we would get $\hat g (x) = ux^2 + wx + b$ 
+
+Now, we can take $\hat g (x) = ux^2 + wx+ b$ to be the quadratic least squares line, because all other linear function will have a third derivative of zero but this will also minimize the RSS.
+
+```{r}
+ggplot(df, aes(x = X, y = Y)) + 
+  geom_point(alpha = 0.5) + 
+  stat_function(fun = generating_fn, aes(col = "True data generating Function")) + 
+  geom_smooth(method = "lm", formula = "y ~ x + I(x^2)", se = F, aes(col = "Example g(X)"), size=0.5) + 
+  scale_color_manual(values = c("red", "blue")) + 
+  theme(legend.position = "right", legend.title = element_blank())
+```
+
+### e. $\lambda = 0, m = 3$
+
+For m = 3, we get 
+
+$\hat g = \underset{g}{\operatorname{argmin}}\bigg (\displaystyle \sum_{i=1}^{n}(y_i - g(x_i))^2 + \lambda \int [g^{(3)}(x)]^2 \,dx \bigg)$
+
+But now that $\lambda = 0$, the penalty term is no longer considered in the selection of $\hat g(x)$. Becasue of this we can achieve RSS=0 by simply fitting "connect the dots" model. 
+
+Taking a cubic smoothing spline (with no smoothing) as an example:
+
+```{r}
+interp_spline <- smooth.spline(x = df$X, y = df$Y, all.knots = T, lambda = 0.0000000000001)
+fitted <- predict(interp_spline, x = seq(min(X) - 0.02, max(X) + 0.02, by = 0.0001))
+fitted <- data.frame(x = fitted$x, fitted_y = fitted$y)
+
+ggplot(df, aes(x = X, y = Y)) + 
+  geom_point(alpha = 0.5) + 
+  stat_function(fun = generating_fn, aes(col = "True data generating Function")) + 
+  geom_line(data = fitted, 
+            aes(x = x, y = fitted_y, col = "Example g(X)")) + 
+  scale_color_manual(values = c("red", "blue")) + 
+  theme(legend.position = "right", legend.title = element_blank())
+```
+
+Using Cross Validation to select the value of $\lambda$ in the above approach
+
+```{r}
+smooth_spline <- smooth.spline(x = df$X, y = df$Y, all.knots = T)
+fitted <- predict(smooth_spline, x = seq(min(X) - 0.02, max(X) + 0.02, by = 0.0001))
+fitted <- data.frame(x = fitted$x, fitted_y = fitted$y)
+
+ggplot(df, aes(x = X, y = Y)) + 
+  geom_point(alpha = 0.5) + 
+  stat_function(fun = generating_fn, aes(col = "True data generating Function")) + 
+  geom_line(data = fitted, 
+            aes(x = x, y = fitted_y, col = "Example g(X)")) + 
+  scale_color_manual(values = c("red", "blue")) + 
+  theme(legend.position = "right", legend.title = element_blank())
+```
+
+The above fit is much closer to the true generating function than anything so far!
+
+### 2. Suppose we fit a curve with basis functions $b_1(X) = I(0 \le X \le 2) − (X + 1)I(1 \le X \le 2), b_2(X) = (2X −2)I(3 \le X \le 4) −I(4 < X \le 5)$. We fit the linear regression model
+
+### $Y = \beta_0 + \beta_1b_1(X) + \beta_2b_2(X) + \epsilon$
+
+### and obtain coefficient estimates $\hat \beta_0 = 2, \hat \beta_1 = 3, \hat \beta_2 = −2$. Sketch the estimated curve between $X = −2$ and $X = 6$. Note the intercepts, slopes, and other relevant information.
+
+Using the information from the question, we can simplify the linear regression model to the following 
+
+$Y = \begin{cases} 2 &-2\leq x < 0 \\ 5 & 0 \leq x < 1 \\ 2-3x & 1\leq x\leq 2 \\ 2 & 2 < x < 3 \\ 6-4x & 3 \leq x\leq 4 \\ 4 & 4 < x\leq 5 \\ 2 & 5 < x\leq 6 \\ \end{cases}$
+
+```{r}
+x <- seq(-2, 6, 0.01)
+y <- (x >= -2 & x < 0) * 2 +
+      (x >= 0 & x <1) * 5 +
+      (x >= 1 & x <= 2) * (2 - 3*x) +
+      (x > 2 & x < 3) * 2 +
+      (x >= 3 & x <= 4) * (6 - 4*x) +
+      (x >4 & x <= 5) * 4 +
+      (x >5 & x <= 6) * 2
+```
+
+```{r}
+ggplot()+
+  geom_line(aes(x,y), col="blue")
+```
+
+### 3. Prove that any function of the form
+
+### $f(X) = \beta_0 + \beta_1X + \beta_2X^2 + \beta_3X^3 + \beta_4(X-\psi)^3_+$
+
+### is a cubic spline with a knot at $\psi$
+
+In the chapter we discussed that a cubic regression spline with one knot at $\psi$ can be obtained using a basis of the form $x, x^2, x^3, (x-\psi)^3_+$, where $(x-\psi)^3_+ = (x-\psi)^3$ if $x > \psi$ and equals 0 otherwise. 
+
+Let us now understand why a function of the form 
+
+$f(X) = \beta_0 + \beta_1X + \beta_2X^2 + \beta_3X^3 + \beta_4(X-\psi)^3_+$
+
+is a cubic spline regardless of the values of $\beta_0, \beta_1, \beta_2, \beta_3, \beta_4$
+
+Let us first find a cubic polynomial 
+
+$f_1(x) = a_1 + b_1x + c_1x^2 + d_1x^3$
+
+such that $f(x) = f_1(x)$ for all $x \le \psi$
+
+For $x \le \psi$, 
+
+$f(x) = \beta_0 + \beta_1x + \beta_2x^2 + \beta_3x^3$
+
+Because $f(x) = f_1(x)$, 
+
+$a_1 + b_1x + c_1x^2 + d_1x^3 = \beta_0 + \beta_1x + \beta_2x^2 + \beta_3x^3$
+
+So we take, $a_1 = \beta_0, b_1 = \beta_1, c_1 =  \beta_2, d_1 = \beta_3$
+
+Now let us find a cubic polynomial 
+
+$f_2(x) = a_2 + b_2x + c_2x^2 + d_2x^3$
+
+such that $f(x) = f_2(x)$ for all $x > \psi$
+
+For $x > \psi$, 
+
+$f(x) = \beta_0 + \beta_1x + \beta_2x^2 + \beta_3x^3 + \beta_4(x-\psi)^3$
+
+Expanding $ \beta_4(x-\psi)^3$ 
+
+$\beta_4(x-\psi)^3 = \beta_4 (x^3 - \psi^3 + 3\psi^2 x - 3 \psi x^2)$
+
+$f(x) = \beta_0 + \beta_1x + \beta_2x^2 + \beta_3x^3 + \beta_4x^3 - \beta_4\psi^3 + 3\beta_4\psi^2 x - 3 \beta_4\psi x^2$
+
+$f(x) = (\beta_0 - \beta_4\psi^3) + (\beta_1 + 3\beta_4\psi^2)x +  (\beta_2- 3 \beta_4\psi)x^2 + (\beta_3+ \beta_4)x^3$
+
+So, $a_2 = \beta_0 - \beta_4\psi^3$, $b_2 = \beta_1 + 3\beta_4\psi^2$, $c_2 = \beta_2- 3 \beta_4\psi$, $d_2 = \beta_3+ \beta_4$
+
+Now, 
+
+$f_1(\psi) = \beta_0 + \beta_1\psi + \beta_2\psi^2 + \beta_3\psi^3$
+
+and 
+
+$f_2(\psi) = (\beta_0 - \beta_4\psi^3) + (\beta_1 + 3\beta_4\psi^2)\psi +  (\beta_2- 3 \beta_4\psi)\psi^2 + (\beta_3+ \beta_4)\psi^3 = \beta_0 + \beta_1\psi + \beta_2\psi^2 + \beta_3\psi^3 = f_1(\psi)$
+
+$f_1(\psi) = f_2(\psi) \implies f(x)$ is continuous at $\psi$
+
+Also, 
+
+$f_1^\prime(\psi) = \beta_1 + 2\beta_2\psi + 3\beta_3\psi^2$
+
+and 
+
+$f_2^\prime(\psi) = (\beta_1 + 3\beta_4\psi^2) + 2(\beta_2- 3 \beta_4\psi)\psi + 3(\beta_3+ \beta_4)\psi^2 = \beta_1 + 2\beta_2\psi + 3\beta_3\psi^2$
+
+$f_1^\prime(\psi) = f_2^\prime(\psi) \implies f^\prime(x)$ is continuous at $\psi$
+
+Finally, 
+
+$f_1^{\prime\prime}(\psi) =  2\beta_2 + 6\beta_3\psi$
+
+and 
+
+$f_2^{\prime\prime}(\psi) = 2(\beta_2- 3 \beta_4\psi) + 6(\beta_3+ \beta_4)\psi = 2\beta_2 + 6\beta_3\psi$
+
+$f_1^{\prime\prime}(\psi) = f_2^{\prime\prime}(\psi) \implies f^{\prime\prime}(x)$ is continuous at $\psi$
+
+Therefore, $f(x)$ is indeed a cubic spline. 
+
+### 4. For this problem, we will use the Wage data set that is part of the ISLR package. Split the data into a training set and a test set, and then fit the models to predict Wage using Age on the training set. Make some plots, and comment on your results. Which approach yields the best results on the test set?
+
+```{r}
+library(ISLR2)
+```
+
+```{r}
+set.seed(7)
+dt <- sample(1:nrow(Wage), nrow(Wage) / 2)
+train <- Wage[dt,]
+test <- Wage[-dt,]
+testVar <- Wage$wage[-dt]
+```
+
+### a. Polynomial 
+
+```{r}
+lm.Wage1 <- lm(wage ~ poly(age, 1), data = train)
+lm.Wage2 <- lm(wage ~ poly(age, 2), data = train)
+lm.Wage3 <- lm(wage ~ poly(age, 3), data = train)
+lm.Wage4 <- lm(wage ~ poly(age, 4), data = train)
+lm.Wage5 <- lm(wage ~ poly(age, 5), data = train)
+lm.Wage6 <- lm(wage ~ poly(age, 6), data = train)
+```
+
+```{r}
+lm.Wagepred <- predict(lm.Wage1, test)
+mean((lm.Wagepred - testVar)^2)
+lm.Wagepred <- predict(lm.Wage2, test)
+mean((lm.Wagepred - testVar)^2)
+lm.Wagepred <- predict(lm.Wage3, test)
+mean((lm.Wagepred - testVar)^2)
+lm.Wagepred <- predict(lm.Wage4, test)
+mean((lm.Wagepred - testVar)^2)
+lm.Wagepred <- predict(lm.Wage5, test)
+mean((lm.Wagepred - testVar)^2)
+lm.Wagepred <- predict(lm.Wage6, test)
+mean((lm.Wagepred - testVar)^2)
+```
+Usually, it is better to use a simple model that explains relatively the most variation. There is a significant drop in test MSE till polynomial of order 3. After that, there is only a little difference in the test MSE. So, Model 3 appears to be the best model for this dataset. 
+
+```{r}
+lm.Wagepred <- predict(lm.Wage3, test)
+ggplot() +
+  geom_point(data =test, aes(x = age, y = wage)) +
+  geom_line(data = test, aes(x = age, y = lm.Wagepred), color = "blue")  +
+  labs(title = "Degree-3 Polynomial")
+```
+```{r}
+mean((lm.Wagepred - testVar)^2)
+```
+
+### b. Step Function
+
+```{r}
+pred1 <- mean(train[train$age<25,]$wage)
+pred2 <- mean(train[train$age >=25 & train$age<40,]$wage)
+pred3 <- mean(train[train$age >=40 & train$age<60,]$wage)
+pred4 <-  mean(train[train$age>=60,]$wage)
+
+ggplot()+
+  geom_point(data=test, aes(x=age, y=wage))+
+  geom_line(data=test[test$age<25,], 
+            aes(y = pred1, x=age), size = 1, col="blue") +
+  geom_line(data=test[test$age >=25 & test$age<40,], 
+            aes(y = pred2, x=age), size = 1, col="blue") +
+  geom_line(data=test[test$age>=40 & test$age<60,], 
+            aes(y = pred3, x=age), size = 1, col="blue") +
+  geom_line(data=test[test$age>=60,], 
+            aes(y = pred4, x=age), size = 1, col="blue") +
+  geom_vline(xintercept = 25, linetype="dashed", color="red", size=0.5) + 
+  geom_vline(xintercept = 40, linetype="dashed", color="red", size=0.5) + 
+  geom_vline(xintercept = 60, linetype="dashed", color="red", size=0.5) 
+
+```
+
+```{r}
+
+for (i in 1:length(test$age)){
+  if (test$age[i]<25){
+    test$pred_step[i] <- pred1 
+  }
+  else if (test$age[i]>=25 & test$age[i]<40){
+    test$pred_step[i] <- pred2
+  }
+  else if (test$age[i]>=40 & test$age[i]<60){
+    test$pred_step[i] <- pred3
+  }
+  else if (test$age[i]>=60){
+    test$pred_step[i] <- pred4
+  }
+}
+
+```
+
+```{r}
+mean((test$pred_step- test$wage)^2)
+```
+
+```{r}
+ggplot()+
+  geom_point(data=test, aes(x=age, y=wage), col="gray")+
+  geom_point(data=test, aes(x=age, y=pred_step), col="red")+
+  geom_vline(xintercept = 25, linetype="dashed", color="black", size=0.5) + 
+  geom_vline(xintercept = 40, linetype="dashed", color="black", size=0.5) + 
+  geom_vline(xintercept = 60, linetype="dashed", color="black", size=0.5) 
+```
+
+### c. piecewise polynomial
+
+```{r}
+lm.1 <- lm(wage~age, data = train[train$age<25,])
+lm.2 <- lm(wage~age, data = train[train$age >=25 & train$age<40,])
+lm.3 <- lm(wage~age, data = train[train$age>=40 & train$age<60,])
+lm.4 <- lm(wage~age, data = train[train$age>=60,])
+
+pred1 <- predict(lm(wage~age,
+                    data = train[train$age<25,]))
+pred2 <- predict(lm(wage~age,
+                    data = train[train$age >=25 & train$age<40,]))
+pred3 <- predict(lm(wage~age,
+                    data = train[train$age>=40 & train$age<60,]))
+pred4 <-  predict(lm(wage~age,
+                    data = train[train$age>=60,]))
+
+
+```
+
+
+```{r}
+
+ggplot() +
+  geom_point(data = test, aes(x = age, y = wage)) +
+  geom_line(data=train[train$age<25,], 
+            aes(y = pred1, x=age), size = 1, col="blue") +
+  geom_line(data=train[train$age >=25 & train$age<40,], 
+            aes(y = pred2, x=age), size = 1, col="blue") +
+  geom_line(data=train[train$age>=40 & train$age<60,], 
+            aes(y = pred3, x=age), size = 1, col="blue") +
+  geom_line(data=train[train$age>=60,], 
+            aes(y = pred4, x=age), size = 1, col="blue") +
+  geom_vline(xintercept = 25, linetype="dashed", color="red", size=0.5) + 
+  geom_vline(xintercept = 40, linetype="dashed", color="red", size=0.5) + 
+  geom_vline(xintercept = 60, linetype="dashed", color="red", size=0.5) 
+``` 
+```{r}
+for (i in 1:length(test$age)){
+  if (test$age[i]<25){
+    test$pred_pLR[i] <- lm.1$coefficients[1] + lm.1$coefficients[2]*test$age[i]
+  }else if (test$age[i]>=25 & test$age[i]<40){
+    test$pred_pLR[i] <- lm.2$coefficients[1] + lm.2$coefficients[2]*test$age[i]
+  }else if (test$age[i]>=40 & test$age[i]<60){
+    test$pred_pLR[i] <- lm.3$coefficients[1] + lm.3$coefficients[2]*test$age[i]
+  }else if (test$age[i]>=60){
+    test$pred_pLR[i] <- lm.4$coefficients[1] + lm.4$coefficients[2]*test$age[i]
+  }
+}
+
+```
+
+```{r}
+mean((test$pred_pLR- test$wage)^2)
+```
+
+```{r}
+ggplot()+
+  geom_point(data=test, aes(x=age, y=wage), col="gray")+
+  geom_point(data=test, aes(x=age, y=pred_pLR), col="red")+
+  geom_vline(xintercept = 25, linetype="dashed", color="black", size=0.5) + 
+  geom_vline(xintercept = 40, linetype="dashed", color="black", size=0.5) + 
+  geom_vline(xintercept = 60, linetype="dashed", color="black", size=0.5) 
+```
+
+```{r}
+lm.1 <- lm(wage~poly(age,2, raw=TRUE), data = train[train$age<25,])
+lm.2 <- lm(wage~poly(age,2, raw=TRUE), data = train[train$age >=25 & train$age<40,])
+lm.3 <- lm(wage~poly(age,2, raw=TRUE), data = train[train$age>=40 & train$age<60,])
+lm.4 <- lm(wage~poly(age,2, raw=TRUE), data = train[train$age>=60,])
+
+pred1 <- predict(lm(wage~poly(age,2, raw=TRUE),
+                    data = train[train$age<25,]))
+pred2 <- predict(lm(wage~poly(age,2, raw=TRUE),
+                    data = train[train$age >=25 & train$age<40,]))
+pred3 <- predict(lm(wage~poly(age,2, raw=TRUE),
+                    data = train[train$age>=40 & train$age<60,]))
+pred4 <-  predict(lm(wage~poly(age,2, raw=TRUE),
+                    data = train[train$age>=60,]))
+
+
+```
+
+
+```{r}
+
+ggplot() +
+  geom_point(data = test, aes(x = age, y = wage)) +
+  geom_line(data=train[train$age<25,], 
+            aes(y = pred1, x=age), size = 1, col="blue") +
+  geom_line(data=train[train$age >=25 & train$age<40,], 
+            aes(y = pred2, x=age), size = 1, col="blue") +
+  geom_line(data=train[train$age>=40 & train$age<60,], 
+            aes(y = pred3, x=age), size = 1, col="blue") +
+  geom_line(data=train[train$age>=60,], 
+            aes(y = pred4, x=age), size = 1, col="blue") +
+  geom_vline(xintercept = 25, linetype="dashed", color="red", size=0.5) + 
+  geom_vline(xintercept = 40, linetype="dashed", color="red", size=0.5) + 
+  geom_vline(xintercept = 60, linetype="dashed", color="red", size=0.5) 
+``` 
+
+
+```{r}
+for (i in 1:length(test$age)){
+  if (test$age[i]<25){
+    test$pred_pq[i] <- lm.1$coefficients[1] + lm.1$coefficients[2]*test$age[i] + lm.1$coefficients[3]*((test$age[i])^2)
+  }else if (test$age[i]>=25 & test$age[i]<40){
+    test$pred_pq[i] <- lm.2$coefficients[1] + lm.2$coefficients[2]*test$age[i] + lm.2$coefficients[3]*((test$age[i])^2)
+  }else if (test$age[i]>=40 & test$age[i]<60){
+    test$pred_pq[i] <- lm.3$coefficients[1] + lm.3$coefficients[2]*test$age[i] + lm.3$coefficients[3]*((test$age[i])^2)
+  }else if (test$age[i]>=60){
+    test$pred_pq[i] <- lm.4$coefficients[1] + lm.4$coefficients[2]*test$age[i] + lm.4$coefficients[3]*((test$age[i])^2)
+  }
+}
+
+```
+
+
+```{r}
+ggplot()+
+  geom_point(data=test, aes(x=age, y=wage), col="gray")+
+  geom_point(data=test, aes(x=age, y=pred_pq), col="red")+
+  geom_vline(xintercept = 25, linetype="dashed", color="black", size=0.5) + 
+  geom_vline(xintercept = 40, linetype="dashed", color="black", size=0.5) + 
+  geom_vline(xintercept = 60, linetype="dashed", color="black", size=0.5) 
+```
+```{r}
+mean((test$pred_pq- test$wage)^2)
+```
+
+```{r}
+lm.1 <- lm(wage~poly(age,3, raw=TRUE), data = train[train$age<25,])
+lm.2 <- lm(wage~poly(age,3, raw=TRUE), data = train[train$age >=25 & train$age<40,])
+lm.3 <- lm(wage~poly(age,3, raw=TRUE), data = train[train$age>=40 & train$age<60,])
+lm.4 <- lm(wage~poly(age,3, raw=TRUE), data = train[train$age>=60,])
+
+pred1 <- predict(lm(wage~poly(age,3, raw=TRUE),
+                    data = train[train$age<25,]))
+pred2 <- predict(lm(wage~poly(age,3, raw=TRUE),
+                    data = train[train$age >=25 & train$age<40,]))
+pred3 <- predict(lm(wage~poly(age,3, raw=TRUE),
+                    data = train[train$age>=40 & train$age<60,]))
+pred4 <-  predict(lm(wage~poly(age,3, raw=TRUE),
+                    data = train[train$age>=60,]))
+
+
+```
+
+
+```{r}
+
+ggplot() +
+  geom_point(data = test, aes(x = age, y = wage)) +
+  geom_line(data=train[train$age<25,], 
+            aes(y = pred1, x=age), size = 1, col="blue") +
+  geom_line(data=train[train$age >=25 & train$age<40,], 
+            aes(y = pred2, x=age), size = 1, col="blue") +
+  geom_line(data=train[train$age>=40 & train$age<60,], 
+            aes(y = pred3, x=age), size = 1, col="blue") +
+  geom_line(data=train[train$age>=60,], 
+            aes(y = pred4, x=age), size = 1, col="blue") +
+  geom_vline(xintercept = 25, linetype="dashed", color="red", size=0.5) + 
+  geom_vline(xintercept = 40, linetype="dashed", color="red", size=0.5) + 
+  geom_vline(xintercept = 60, linetype="dashed", color="red", size=0.5) 
+``` 
+
+```{r}
+for (i in 1:length(test$age)){
+  if (test$age[i]<25){
+    test$pred_pc[i] <- lm.1$coefficients[1] + lm.1$coefficients[2]*test$age[i] + lm.1$coefficients[3]*((test$age[i])^2) + lm.1$coefficients[4]*((test$age[i])^3) 
+  }else if (test$age[i]>=25 & test$age[i]<40){
+    test$pred_pc[i] <- lm.2$coefficients[1] + lm.2$coefficients[2]*test$age[i] + lm.2$coefficients[3]*((test$age[i])^2) + lm.2$coefficients[4]*((test$age[i])^3) 
+  }else if (test$age[i]>=40 & test$age[i]<60){
+    test$pred_pc[i] <- lm.3$coefficients[1] + lm.3$coefficients[2]*test$age[i] + lm.3$coefficients[3]*((test$age[i])^2) + lm.3$coefficients[4]*((test$age[i])^3) 
+  }else if (test$age[i]>=60){
+    test$pred_pc[i] <- lm.4$coefficients[1] + lm.4$coefficients[2]*test$age[i] + lm.4$coefficients[3]*((test$age[i])^2) + lm.4$coefficients[4]*((test$age[i])^3) 
+  }
+}
+
+```
+
+
+
+```{r}
+ggplot()+
+  geom_point(data=test, aes(x=age, y=wage), col="gray")+
+  geom_point(data=test, aes(x=age, y=pred_pc), col="red")+
+  geom_vline(xintercept = 25, linetype="dashed", color="black", size=0.5) + 
+  geom_vline(xintercept = 40, linetype="dashed", color="black", size=0.5) + 
+  geom_vline(xintercept = 60, linetype="dashed", color="black", size=0.5) 
+```
+```{r}
+mean((test$pred_pc- test$wage)^2)
+```
+
+### extra: Continuous piecewise
+
+```{r}
+pred.lm <- lm(wage~ age + I((age-25)*(age>=25)) +
+                                   I((age-40)*(age >= 40)) +
+                                   I((age-60)*(age >= 60)),
+                    data = train)
+
+test$cpLR <- predict(pred.lm, test)
+
+ggplot() +
+  geom_point(data = test, aes(x = age, y = wage), col="gray") +
+  geom_point(data=test, aes(y = cpLR , x=age), size = 1, col="red") +
+  geom_vline(xintercept = 25, linetype="dashed", color="black", size=0.5) + 
+  geom_vline(xintercept = 40, linetype="dashed", color="black", size=0.5) + 
+  geom_vline(xintercept = 60, linetype="dashed", color="black", size=0.5) 
+```
+```{r}
+mean((test$cpLR - test$wage)^2)
+```
+
+```{r}
+pred.quad <- lm(wage~ age + I(age^2) + 
+                    I((age-25)*(age>=25)) + I((age-25)^2*(age>=25)) +
+                    I((age-40)*(age >= 40)) + I((age-40)^2*(age>=40)) +
+                    I((age-60)*(age >= 60)) + I((age-60)^2*(age>=60)),
+                    data = train)
+
+test$cpq <- predict(pred.quad, test)
+
+ggplot() +
+  geom_point(data = test, aes(x = age, y = wage), col="gray") +
+  geom_point(data=test, 
+            aes(y = cpq, x=age), size = 1, col="red") +
+  geom_vline(xintercept = 25, linetype="dashed", color="black", size=0.5) + 
+  geom_vline(xintercept = 40, linetype="dashed", color="black", size=0.5) + 
+  geom_vline(xintercept = 60, linetype="dashed", color="black", size=0.5) 
+```
+
+```{r}
+mean((test$cpq - test$wage)^2)
+```
+
+```{r}
+
+pred.cubic <- lm(wage~ age + I(age^2) + I(age^3) + 
+                    I((age-25)*(age>=25)) + I((age-25)^2*(age>=25)) + 
+                      I((age-25)^3*(age>=25)) +
+                    I((age-40)*(age >= 40)) + I((age-40)^2*(age>=40)) +
+                      I((age-40)^3*(age>=40)) +
+                    I((age-60)*(age >= 60)) + I((age-60)^2*(age>=60)) +
+                      I((age-60)^3*(age>=60)),
+                    data = train)
+
+test$cpc <- predict(pred.cubic, test)
+
+ggplot() +
+  geom_point(data = test, aes(x = age, y = wage), col="gray") +
+  geom_point(data=test, 
+            aes(y = cpc, x=age), size = 1, col="red") +
+  geom_vline(xintercept = 25, linetype="dashed", color="black", size=0.5) + 
+  geom_vline(xintercept = 40, linetype="dashed", color="black", size=0.5) + 
+  geom_vline(xintercept = 60, linetype="dashed", color="black", size=0.5) 
+```
+```{r}
+mean((test$cpc - test$wage)^2)
+```
+
+### d.  cubic spline
+
+```{r}
+library(splines)
+
+fit = lm(wage~bs(age, knots = c(25,40,60)), data = train)
+
+test$pred_lsp <- predict(fit, newdata=test)
+
+
+ggplot() +
+  geom_point(data = test, aes(x = age, y = wage)) +
+  geom_line(data = train, aes(x = age, y = predict(fit,train)) , color = "blue")
+```
+
+```{r}
+
+ggplot() +
+  geom_point(data = test, aes(x = age, y = wage), col="gray") +
+  geom_point(data = test, aes(y = pred_lsp, x=age), size = 1, col="red") +
+  geom_vline(xintercept = 25, linetype="dashed", color="black", size=0.5) + 
+  geom_vline(xintercept = 40, linetype="dashed", color="black", size=0.5) + 
+  geom_vline(xintercept = 60, linetype="dashed", color="black", size=0.5) 
+
+```
+```{r}
+mean((test$pred_lsp- test$wage)^2)
+```
+
+```{r}
+fit2 = lm(wage~ns(age, df = 4), data = train)
+
+test$pred_ns <- predict(fit2, newdata = test)
+
+ggplot() +
+  geom_point(data = test, aes(x = age, y = wage)) +
+  geom_line(data = train, aes(x = age, y = predict(fit2,train)) , color = "blue")
+
+```
+```{r}
+ggplot() +
+  geom_point(data = test, aes(x = age, y = wage), col="gray") +
+  geom_point(data = test, aes(y = pred_ns, x=age), size = 1, col="red")+
+  geom_vline(xintercept = 25, linetype="dashed", color="black", size=0.5) + 
+  geom_vline(xintercept = 40, linetype="dashed", color="black", size=0.5) + 
+  geom_vline(xintercept = 60, linetype="dashed", color="black", size=0.5) 
+
+```
+```{r}
+mean((test$pred_ns- test$wage)^2)
+```
+
+### e. Smoothing spline
+
+```{r}
+fit_smooth = with(train, smooth.spline(age, wage, df = 16))
+
+fit_smooth_cv = with(train, smooth.spline(age, wage, cv = TRUE))
+```
+```{r}
+ggplot() +
+  geom_point(data = test, aes(x = age, y = wage)) +
+  geom_line(aes(x = fit_smooth$x, y = fit_smooth$y, col="16 degrees of freedom"))  +
+  geom_line(aes(x = fit_smooth_cv$x, y = fit_smooth_cv$y, col="6.8 effective degree of freedom"))+
+  scale_color_manual(values = c("red", "blue")) +
+  theme(legend.position = 'bottom', legend.title = element_blank())
+
+```
+```{r}
+smooth <- as.data.frame(predict(fit_smooth, newdata=test))
+
+test <-merge (test, smooth, by.x = 'age', by.y ='x', all.x=TRUE)
+
+
+```
+```{r}
+names(test)[names(test) == "y"] <- "pred_smc"
+head(test)
+```
+
+```{r}
+ggplot() +
+  geom_point(data = test, aes(x = age, y = wage), col="gray") +
+  geom_point(data = test, aes(y = pred_smc, x=age), size = 1, col="red") +
+  geom_vline(xintercept = 25, linetype="dashed", color="black", size=0.5) + 
+  geom_vline(xintercept = 40, linetype="dashed", color="black", size=0.5) + 
+  geom_vline(xintercept = 60, linetype="dashed", color="black", size=0.5) 
+```
+
+```{r}
+mean((test$pred_smc-test$wage)^2)
+```
+
+
+```{r}
+smooth_cv <- as.data.frame(predict(fit_smooth_cv, newdata=test))
+
+test <-merge (test, smooth_cv, by.x = 'age', by.y ='x', all.x=TRUE)
+names(test)[names(test) == "y"] <- "pred_smcv"
+head(test)
+```
+
+```{r}
+ggplot() +
+  geom_point(data = test, aes(x = age, y = wage), col="gray") +
+  geom_point(data = test, aes(y = pred_smcv, x=age), size = 1, col="red") +
+  geom_vline(xintercept = 25, linetype="dashed", color="black", size=0.5) + 
+  geom_vline(xintercept = 40, linetype="dashed", color="black", size=0.5) + 
+  geom_vline(xintercept = 60, linetype="dashed", color="black", size=0.5) 
+```
+
+```{r}
+mean((test$pred_smcv-test$wage)^2)
+```
+
+
+For this question, I randomly selected knots at 25, 40, 60 and fit the models on these knots. The number of knots could be further changed but I haven't done that here. For this question that was not required. What we are trying to see here is that for which approach yields the best results for our dataset. What I did here is that I first split the dataset into train and test set. Then, I fit all the required models for the question and some extra ones to compare all these approaches. What I observed from this particular question is that all the approaches have almost similar test error. This might be because of our datapoints are spread in such a way, that what all these approaches try to do is stay around the center so as to reduce the mean squared error. And looking at the graphs, we see a very strong similar predicted values in all these approaches. So, for this data, all of these approaches behave very similarly. 
+
+### 5. Use the Auto data set to predict a car’s mpg. (You should remove the name variable before you begin.)
+
+```{r}
+library(ISLR2)
+
+
+Auto <- subset(Auto, select = - c(name))
+
+```
+
+### a. First, try using a regression tree. You should grow a big tree, and then consider pruning the tree. How accurately does your regression tree predict a car’s gas mileage? Make some figures, and comment on your results.
+```{r}
+set.seed(1023)
+train <- sample(1:nrow(Auto), nrow(Auto)/2)
+
+```
+
+```{r}
+library(rpart)
+Auto.rpart <- rpart(mpg ~ . , data=Auto, subset=train, control=rpart.control(cp=0))
+```
+
+```{r}
+library(rpart.plot)
+rpart.plot(Auto.rpart, box.palette = "RdBu", nn=TRUE)
+```
+
+```{r}
+pred <- predict(Auto.rpart, newdata=Auto[-train,])
+Auto.test <- Auto[-train, "mpg"]
+plot(pred, Auto.test)
+abline(0,1)
+mean((pred-Auto.test)^2)
+
+
+```
+```{r}
+printcp(Auto.rpart)
+plotcp(Auto.rpart)
+```
+
+```{r}
+Auto.rpart.pruned <- prune(Auto.rpart, cp=0.01335512)
+rpart.plot(Auto.rpart.pruned, box.palette = "RdBu", nn=TRUE)
+```
+
+```{r}
+pred_prun <- predict(Auto.rpart.pruned, newdata=Auto[-train,])
+Auto.test <- Auto[-train, "mpg"]
+plot(pred_prun, Auto.test)
+abline(0,1)
+mean((pred_prun-Auto.test)^2)
+
+```
+Initially, I "grew" the decision tree fully. Then, for pruning I considered "cp" and factored that in growing a smaller tree. The pruned tree has slightly higher error than a fully-grown tree. 
+
+### b. Fit a bagged regression tree model to predict a car’s mpg. How accurately does this model predict gas mileage? What tuning parameter value(s) did you use in fitting this model?
+
+```{r}
+library(caret)
+set.seed(1729)
+cntrl <- trainControl(method = "cv", number = 10)
+bagg.Auto <- train(mpg ~ ., data = Auto, subset=train, method = "treebag",
+        trControl = cntrl)
+```
+
+```{r}
+summary(bagg.Auto)
+```
+```{r}
+library(ipred)       
+```
+
+```{r}
+ntree <-10:300
+mse <- vector(mode="numeric", length=length(ntree))
+
+for (i in seq_along(ntree)){
+  set.seed(123)
+  model <- bagging(formula=mpg~., 
+                   data=Auto[train,], 
+                   coob=TRUE, 
+                   nbagg=ntree[i], 
+                   control = rpart.control(minsplit = 2, cp = 0))
+  mse[i] <- ((model$err)^2)
+
+}
+```
+
+```{r}
+plot(ntree, mse, type='l')
+```
+```{r}
+bag.Auto <- bagging(
+  formula = mpg ~ .,
+  data = Auto[train, ],
+  nbagg = 150,   
+  coob = TRUE,
+  control = rpart.control(minsplit = 2, cp = 0)
+)
+
+bag.pred <- predict(bag.Auto, newdata=Auto[-train,])
+plot(bag.pred, Auto.test)
+abline(0,1)
+mean((bag.pred- Auto.test)^2)
+```
+Here, instead of just growing one decision tree, I used the bagging approach to create multiple decision trees and then use all those trees aggregately to predict. This is a kind of ensemble approach to deal with this data. 
+
+For bagging, we use all the features. So, we don't need to tune the number of features. However, we can tune the number of trees. Number of trees is our hyper-parameter. I tried to do this by bagging for 10 trees to 300 trees and then calculated the error for the OOB. I plotted this error with the number of trees and I observed that initially for the increase in number of trees, there is a decrease in the OOB error, however, after a point, the increase in the number of trees does not significantly affect the OOB error. So, I randomly selected 15 trees for the final bagging model and predicted the mpg values for the test data, and calculated the test error. Here, the test error is much better as compared to a single-decision tree. 
+
+We verify the fact that we learnt in the class that Bagging outperforms single decision tree because of lower-variance in Bagging.
+ 
+### c. Fit a random forest model to predict a car’s mpg. How accurately does this model predict gas mileage? What tuning parameter value(s) did you use in fitting this model?
+
+```{r}
+library(randomForest)
+ntree <-10:300
+mse_rf <- vector(mode="numeric", length=length(ntree))
+for (i in seq_along(ntree)){
+  set.seed(123)
+  model <- randomForest(mpg~., 
+                   data=Auto[train,],
+                   ntree=ntree[i])
+  mse_rf[i] <- (tail (model$mse, 1))
+
+}
+
+ 
+```
+
+```{r}
+plot(ntree, mse_rf, type='l')
+```
+```{r}
+
+m <-1:7
+mse_m <- vector(mode="numeric", length=length(m))
+for (i in seq_along(m)){
+  set.seed(123)
+  model <- randomForest(mpg~., 
+                   data=Auto,
+                   subset = train,
+                   ntree=150,
+                   mtry=m[i])
+  mse_m[i] <- (tail (model$mse, 1))
+
+}
+
+```
+
+```{r}
+plot(m, mse_m, type='l')
+```
+```{r}
+library(randomForest)
+rf.Auto <- randomForest(mpg~., 
+                   data = Auto[train,],
+                   ntree = 150,
+                   mtry = 5)
+ 
+rf.pred <- predict(rf.Auto, newdata=Auto[-train,])
+plot(rf.pred, Auto.test)
+abline(0,1)
+mean((rf.pred- Auto.test)^2)
+```
+```{r}
+varImpPlot(rf.Auto,
+           sort = T,
+           n.var = 7,
+           main = "Variable Importance")
+importance(rf.Auto)
+```
+For randomforest, we can tune the number of features as well as the number of trees. I did the same thing as in the Bagging, I calculated the OOB error for all RandomForest with 10 trees to 300 trees and arrived at a similar result that after a certain point, the increase in number of trees does not affect the OOB error significantly. 
+
+So, I chose 150 trees at random and tried to see how many features do we need? I checked out randomforest with 150 trees for 1 to 7 features. I selected 5 features and predicted the mpg for test data and calculated the test error. The test error as compared to the single decsion tree is much better for Random Forest.
+
+### d. Fit a generalized additive model (GAM) model to predict a car’s mpg. How accurately does your GAM model predict a car’s gas mileage? Make some figures to help visualize the fitted functions in your GAM model, and comment on your results.
+
+```{r}
+head(Auto)
+Auto$cylinders <- as.factor(Auto$cylinders)
+Auto$year <- as.factor(Auto$year)
+Auto$origin <- as.factor(Auto$origin)
+```
+```{r}
+head(Auto)
+```
+```{r}
+pairs(Auto[,], pch = 19)
+```
+
+```{r}
+library(gam)
+gam2 <- gam(mpg ~ ns(displacement, 3) + ns(horsepower, 2)  + ns(weight, 2) + ns(acceleration, 3) + year + origin + cylinders, data = Auto, subset = train)
+pred_gam2 <- predict(gam2, newdata=Auto[-train,])
+plot(pred_gam2, Auto.test)
+abline(0,1)
+mean((pred_gam2- Auto.test)^2)
+```
+```{r}
+
+plot.Gam(gam2, se = TRUE)
+```
+
+
+```{r}
+gam3 <- gam(mpg ~ ns(displacement, 3) + year + origin + cylinders, data = Auto, subset = train)
+pred_gam3 <- predict(gam3, newdata=Auto[-train,])
+plot(pred_gam3, Auto.test)
+abline(0,1)
+mean((pred_gam3- Auto.test)^2)
+```
+
+```{r}
+gam4 <- gam(mpg ~ ns(weight,2) +ns(displacement, 3) + year + origin + cylinders, data = Auto, subset = train)
+pred_gam4 <- predict(gam4, newdata=Auto[-train,])
+plot(pred_gam4, Auto.test)
+abline(0,1)
+mean((pred_gam4- Auto.test)^2)
+```
+```{r}
+gam5 <- gam(mpg ~ ns(horsepower, 2) + ns(weight,2) +ns(displacement, 3) + year + origin + cylinders, data = Auto, subset = train)
+pred_gam5 <- predict(gam5, newdata=Auto[-train,])
+plot(pred_gam5, Auto.test)
+abline(0,1)
+mean((pred_gam5- Auto.test)^2)
+```
+
+```{r}
+anova(gam2, gam3, gam4, gam5, test = "F")
+```
+
+Here, I considered multiple GAMs on the basis of EDA. Firstly, I considered a model with all the features. From EDA it was evident that there is some sort of relation between displacement, weight, acceleration, and horsepower. This means that if I model using some of these and not all these related features, there should not be any significant change in the prediction capacity of the model. I modeled total of 4 GAM based on this hypothesis and found that as compared to the full model. From Anova testing, we see that this hypothesis is true. I would probably go with the model that has displacement, year, origin and cylinders as the features. 
+
+### e. Considering both accuracy and interpretability of the fitted model, which of the models in (a)-(d) do you prefer? Justify your answer.
+
+Just considering the interpretability, Single Decision tree is the most interpretable out of the lot. However, in terms of accuracy, the  ensemble methods like Bagging and RandomForest perform better due to low variance. 
+
+Both these things aside, if I were to consider both accuracy and interpretability of the fitted model, I would definitely go with GAMs, because it is easy to understand the effect of each feature in the prediction. Also, comparing the accuracy, it is much better than Decision Tree and close to Bagging and RandomForest. It's the best of both worlds!
